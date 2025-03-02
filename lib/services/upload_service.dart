@@ -9,7 +9,7 @@ class UploadService {
     required int userId,
     required int schoolId,
   }) async {
-    final uri = Uri.parse("https://xcodeapps.shop/almnsa.php");
+    final uri = Uri.parse("http://xcodeapps.shop/almnsa.php");
     var request = http.MultipartRequest('POST', uri);
 
     // إضافة الملف
@@ -40,7 +40,7 @@ class UploadService {
     required int userId,
     required int schoolId,
   }) async {
-    final uri = Uri.parse("https://xcodeapps.shop/replace.php");
+    final uri = Uri.parse("http://xcodeapps.shop/replace.php");
     var request = http.MultipartRequest('POST', uri);
 
     // إضافة الملف الجديد

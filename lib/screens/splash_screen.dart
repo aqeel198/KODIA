@@ -25,14 +25,12 @@ class _SplashScreenState extends State<SplashScreen> {
     String? storedPassword = await secureStorage.read(key: 'password');
     String? storedSchoolCode = await secureStorage.read(key: 'schoolCode');
 
-    if (storedUsername != null &&
-        storedPassword != null &&
-        storedSchoolCode != null) {
+    if (storedPassword != null) {
       try {
         User? user = await MySQLDataService.instance.loginUser(
-          storedUsername,
+          storedUsername!,
           storedPassword,
-          storedSchoolCode,
+          storedSchoolCode!,
         );
         if (user != null && mounted) {
           Provider.of<UserProvider>(context, listen: false).setUser(user);

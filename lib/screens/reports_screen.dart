@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../services/mysql_data_service.dart';
 import '../providers/user_provider.dart';
 
@@ -120,7 +123,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           color: Colors.grey.shade400,
           title: "0%",
           radius: 60,
-          titleStyle: const TextStyle(
+          titleStyle: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -139,7 +142,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     : const Color(0xFF4CAF50),
             title: "${percentage.toStringAsFixed(1)}%",
             radius: 60,
-            titleStyle: const TextStyle(
+            titleStyle: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -188,7 +191,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -242,7 +245,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   return Text(
                     value.toInt().toString(),
-                    style: const TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey,
@@ -262,7 +265,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         grade,
-                        style: const TextStyle(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -326,7 +329,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 getTitlesWidget: (double value, TitleMeta meta) {
                   return Text(
                     value.toInt().toString(),
-                    style: const TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey,
@@ -345,7 +348,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         labels[idx],
-                        style: const TextStyle(
+                        style: GoogleFonts.cairo(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
@@ -385,7 +388,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -394,10 +397,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2F62FF),
+                      color: const Color(0xFF2F62FF),
                     ),
                   ),
                 ],
@@ -410,10 +413,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Widget _buildReportContent(ReportData data) {
-    TextStyle sectionTitleStyle = const TextStyle(
+    TextStyle sectionTitleStyle = GoogleFonts.cairo(
       fontWeight: FontWeight.bold,
       fontSize: 18,
-      color: Color(0xFF2F62FF),
+      color: const Color(0xFF2F62FF),
     );
     switch (selectedCategory) {
       case "المستخدمون":
@@ -559,14 +562,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     if (user == null || user.role.toLowerCase() != 'admin') {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('التقارير المتقدمة'),
+          title: Text('التقارير المتقدمة', style: GoogleFonts.cairo()),
           centerTitle: true,
         ),
-        body: const Center(
+        body: Center(
           child: Text(
             'ليس لديك صلاحية الوصول لهذه الصفحة',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18),
+            style: GoogleFonts.cairo(fontSize: 18),
           ),
         ),
       );
@@ -577,7 +580,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         appBar: AppBar(
           elevation: 0,
           centerTitle: true,
-          title: const Text('التقارير المتقدمة'),
+          title: Text('التقارير المتقدمة', style: GoogleFonts.cairo()),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -617,13 +620,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       color: Color(0xFF2F62FF),
                     ),
                     isExpanded: true,
-                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                    style: GoogleFonts.cairo(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
                     items:
                         categoryOptions
                             .map(
                               (cat) => DropdownMenuItem(
                                 value: cat,
-                                child: Text(cat, textAlign: TextAlign.right),
+                                child: Text(
+                                  cat,
+                                  textAlign: TextAlign.right,
+                                  style: GoogleFonts.cairo(),
+                                ),
                               ),
                             )
                             .toList(),
@@ -650,6 +660,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                         child: Text(
                           'خطأ: ${snapshot.error}',
                           textAlign: TextAlign.center,
+                          style: GoogleFonts.cairo(),
                         ),
                       );
                     }

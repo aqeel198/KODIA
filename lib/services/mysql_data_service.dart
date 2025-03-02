@@ -127,6 +127,23 @@ class MySQLDataService implements DataService {
     }
   }
 
+  /// جلب اسم المدرسة من قاعدة البيانات
+  Future<String?> getSchoolName(int schoolId) async {
+    final conn = await connection;
+    try {
+      var results = await conn.query('SELECT name FROM schools WHERE id = ?', [
+        schoolId,
+      ]);
+      if (results.isNotEmpty) {
+        return results.first.fields['name'] as String?;
+      }
+      return null;
+    } catch (e) {
+      print("❌ خطأ في getSchoolName: $e");
+      rethrow;
+    }
+  }
+
   @override
   Future<int> registerUser(User user) async {
     final conn = await connection;

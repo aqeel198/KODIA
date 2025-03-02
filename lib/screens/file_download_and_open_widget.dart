@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FileDownloadAndOpenWidget extends StatefulWidget {
   /// عنوان URL الأساسي للملف على السيرفر (بدون معلمات)
@@ -58,13 +59,20 @@ class _FileDownloadAndOpenWidgetState extends State<FileDownloadAndOpenWidget> {
       setState(() {
         _localFilePath = filePath;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("تم تنزيل الملف بنجاح")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("تم تنزيل الملف بنجاح", style: GoogleFonts.cairo()),
+        ),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("حدث خطأ أثناء التحميل: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "حدث خطأ أثناء التحميل: $e",
+            style: GoogleFonts.cairo(),
+          ),
+        ),
+      );
     } finally {
       setState(() {
         _downloading = false;
@@ -77,13 +85,20 @@ class _FileDownloadAndOpenWidgetState extends State<FileDownloadAndOpenWidget> {
     if (_localFilePath != null) {
       final result = await OpenFile.open(_localFilePath!);
       if (result.type != ResultType.done) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("لا يمكن فتح الملف")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("لا يمكن فتح الملف", style: GoogleFonts.cairo()),
+          ),
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("الملف غير موجود. قم بتنزيله أولاً")),
+        SnackBar(
+          content: Text(
+            "الملف غير موجود. قم بتنزيله أولاً",
+            style: GoogleFonts.cairo(),
+          ),
+        ),
       );
     }
   }
@@ -98,7 +113,10 @@ class _FileDownloadAndOpenWidgetState extends State<FileDownloadAndOpenWidget> {
             children: [
               CircularProgressIndicator(value: _progress),
               const SizedBox(height: 8),
-              Text("${(_progress * 100).toStringAsFixed(0)}%"),
+              Text(
+                "${(_progress * 100).toStringAsFixed(0)}%",
+                style: GoogleFonts.cairo(),
+              ),
             ],
           ),
         const SizedBox(height: 16),
@@ -107,13 +125,13 @@ class _FileDownloadAndOpenWidgetState extends State<FileDownloadAndOpenWidget> {
           children: [
             ElevatedButton.icon(
               icon: const Icon(Icons.download),
-              label: const Text("تنزيل الملف"),
+              label: Text("تنزيل الملف", style: GoogleFonts.cairo()),
               onPressed: _downloading ? null : _downloadFile,
             ),
             const SizedBox(width: 16),
             ElevatedButton.icon(
               icon: const Icon(Icons.open_in_new),
-              label: const Text("فتح الملف"),
+              label: Text("فتح الملف", style: GoogleFonts.cairo()),
               onPressed: _localFilePath != null ? _openFile : null,
             ),
           ],

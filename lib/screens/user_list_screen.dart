@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/user.dart';
 import '../providers/user_provider.dart';
@@ -97,19 +98,22 @@ class _UserListScreenState extends State<UserListScreen>
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('تأكيد الحذف'),
-                content: const Text('هل أنت متأكد من حذف هذا المستخدم؟'),
+                title: Text('تأكيد الحذف', style: GoogleFonts.cairo()),
+                content: Text(
+                  'هل أنت متأكد من حذف هذا المستخدم؟',
+                  style: GoogleFonts.cairo(),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('إلغاء'),
+                    child: Text('إلغاء', style: GoogleFonts.cairo()),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                     ),
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text('حذف'),
+                    child: Text('حذف', style: GoogleFonts.cairo()),
                   ),
                 ],
               ),
@@ -133,21 +137,19 @@ class _UserListScreenState extends State<UserListScreen>
       builder: (context) => _EditUserDialog(user: user, isNewUser: false),
     );
 
-    if (updatedUser != null) {
-      try {
-        await MySQLDataService.instance.updateUser(updatedUser);
-        _showSnackBar('تم التعديل بنجاح', Colors.green);
-        _refreshData();
-      } catch (e) {
-        _showSnackBar('فشل التعديل: $e', Colors.red);
-      }
+    try {
+      await MySQLDataService.instance.updateUser(updatedUser!);
+      _showSnackBar('تم التعديل بنجاح', Colors.green);
+      _refreshData();
+    } catch (e) {
+      _showSnackBar('فشل التعديل: $e', Colors.red);
     }
   }
 
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: GoogleFonts.cairo()),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -180,9 +182,9 @@ class _UserListScreenState extends State<UserListScreen>
           ),
         ),
       ),
-      title: const Text(
+      title: Text(
         'قائمة المستخدمين',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -240,7 +242,10 @@ class _UserListScreenState extends State<UserListScreen>
         ),
         labelColor: Colors.white,
         unselectedLabelColor: Colors.black,
-        tabs: const [Tab(text: 'المستخدمين'), Tab(text: 'الإدمن')],
+        tabs: [
+          Tab(child: Text('المستخدمين', style: GoogleFonts.cairo())),
+          Tab(child: Text('الإدمن', style: GoogleFonts.cairo())),
+        ],
       ),
     );
   }
@@ -262,7 +267,13 @@ class _UserListScreenState extends State<UserListScreen>
                   .map(
                     (level) => DropdownMenuItem(
                       value: level,
-                      child: Text(level, style: const TextStyle(fontSize: 16)),
+                      child: Text(
+                        level,
+                        style: GoogleFonts.cairo(
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
                   )
                   .toList(),
@@ -286,6 +297,7 @@ class _UserListScreenState extends State<UserListScreen>
             _tabController.index == 1
                 ? 'بحث بالإدمن (اسم المستخدم)'
                 : 'بحث بالمستخدمين (اسم المستخدم)',
+        labelStyle: GoogleFonts.cairo(),
         prefixIcon: const Icon(Icons.search),
         filled: true,
         fillColor: Colors.blue[50],
@@ -300,6 +312,7 @@ class _UserListScreenState extends State<UserListScreen>
         });
         _refreshData();
       },
+      style: GoogleFonts.cairo(),
     );
   }
 
@@ -316,14 +329,18 @@ class _UserListScreenState extends State<UserListScreen>
         if (snapshot.hasError) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Center(child: Text('خطأ: ${snapshot.error}')),
+            child: Center(
+              child: Text('خطأ: ${snapshot.error}', style: GoogleFonts.cairo()),
+            ),
           );
         }
         final users = snapshot.data ?? [];
         if (users.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
-            child: Center(child: Text('لا يوجد مستخدمون.')),
+            child: Center(
+              child: Text('لا يوجد مستخدمون.', style: TextStyle(fontSize: 16)),
+            ),
           );
         }
         return AnimationLimiter(
@@ -366,21 +383,21 @@ class _UserListScreenState extends State<UserListScreen>
         ),
         title: Text(
           user.username,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: GoogleFonts.cairo(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           'المرحلة الدراسية: $displayGrade | الصلاحية: ${user.role}',
-          style: TextStyle(color: Colors.grey[700], fontSize: 14),
+          style: GoogleFonts.cairo(color: Colors.grey[700], fontSize: 14),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit, color: Colors.green),
+              icon: Icon(Icons.edit, color: Colors.green),
               onPressed: () => _updateUser(user),
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: Icon(Icons.delete, color: Colors.red),
               onPressed: () => _deleteUser(user),
             ),
           ],
@@ -413,7 +430,6 @@ class __EditUserDialogState extends State<_EditUserDialog> {
     _usernameController = TextEditingController(text: widget.user.username);
     _passwordController = TextEditingController(text: widget.user.password);
     _role = widget.user.role;
-    // عند تهيئة القيمة، إذا كان الدور "user" وتكون القيمة فارغة، نعطيها القيمة الافتراضية "الأول"
     _grade = _role == 'user' ? (widget.user.grade ?? 'الأول') : '';
   }
 
@@ -430,7 +446,7 @@ class __EditUserDialogState extends State<_EditUserDialog> {
             children: [
               Text(
                 widget.isNewUser ? 'إضافة مستخدم جديد' : 'تعديل المستخدم',
-                style: const TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -459,7 +475,6 @@ class __EditUserDialogState extends State<_EditUserDialog> {
                     if (_role == 'admin') {
                       _grade = '';
                     } else {
-                      // إذا تم تغيير الدور إلى "مستخدم" وكانت قيمة _grade فارغة، نعطيها القيمة الافتراضية
                       if (_grade.isEmpty) {
                         _grade = 'الأول';
                       }
@@ -485,7 +500,10 @@ class __EditUserDialogState extends State<_EditUserDialog> {
                           .map(
                             (level) => DropdownMenuItem(
                               value: level,
-                              child: Text(level),
+                              child: Text(
+                                level,
+                                style: GoogleFonts.cairo(color: Colors.black),
+                              ),
                             ),
                           )
                           .toList(),
@@ -535,8 +553,10 @@ class __EditUserDialogState extends State<_EditUserDialog> {
       ),
       child: TextField(
         controller: controller,
+        style: GoogleFonts.cairo(),
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: GoogleFonts.cairo(),
           prefixIcon: Icon(icon, color: const Color(0xFF2F62FF)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -557,8 +577,10 @@ class __EditUserDialogState extends State<_EditUserDialog> {
       child: TextField(
         controller: _passwordController,
         obscureText: !_showPassword,
+        style: GoogleFonts.cairo(),
         decoration: InputDecoration(
           labelText: 'كلمة المرور',
+          labelStyle: GoogleFonts.cairo(),
           prefixIcon: const Icon(Icons.lock, color: Color(0xFF2F62FF)),
           suffixIcon: IconButton(
             icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
@@ -594,10 +616,12 @@ class __EditUserDialogState extends State<_EditUserDialog> {
           onChanged: onChanged,
           decoration: InputDecoration(
             labelText: label,
+            labelStyle: GoogleFonts.cairo(),
             prefixIcon: Icon(icon, color: const Color(0xFF2F62FF)),
             border: InputBorder.none,
           ),
           icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF2F62FF)),
+          style: GoogleFonts.cairo(color: Colors.black), // تعديل هنا
         ),
       ),
     );
@@ -616,7 +640,7 @@ class __EditUserDialogState extends State<_EditUserDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: Text(label),
+      child: Text(label, style: GoogleFonts.cairo()),
     );
   }
 }

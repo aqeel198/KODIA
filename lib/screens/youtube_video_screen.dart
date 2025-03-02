@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:screen_protector/screen_protector.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class YoutubePlayerScreen extends StatefulWidget {
   final String videoUrl;
@@ -49,11 +50,16 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
   Widget build(BuildContext context) {
     if (!_isValidVideo) {
       return Scaffold(
-        appBar: AppBar(title: const Text('مشغل YouTube')),
-        body: const Center(
+        appBar: AppBar(
+          title: Text(
+            'مشغل YouTube',
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: Center(
           child: Text(
             'رابط الفيديو غير صالح',
-            style: TextStyle(fontSize: 18, color: Colors.redAccent),
+            style: GoogleFonts.cairo(fontSize: 18, color: Colors.redAccent),
           ),
         ),
       );
@@ -70,9 +76,9 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen> {
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             centerTitle: true,
-            title: const Text(
-              'مشغل YouTube',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            title: Text(
+              'مشغل',
+              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.transparent,
             elevation: 0,

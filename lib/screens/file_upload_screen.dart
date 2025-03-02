@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/folder.dart';
 import '../providers/user_provider.dart';
 import '../services/upload_service.dart';
@@ -53,9 +54,12 @@ class _FileUploadScreenState extends State<FileUploadScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              title: const Text(
+              title: Text(
                 "أدخل اسم الملف",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: GoogleFonts.cairo(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               content: Card(
                 elevation: 6,
@@ -74,11 +78,14 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                         onChanged: (value) => fileNameInput = value,
                         decoration: InputDecoration(
                           labelText: "اسم الملف",
+                          labelStyle: GoogleFonts.cairo(),
                           hintText: "مثال: ملف عربي",
+                          hintStyle: GoogleFonts.cairo(),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        style: GoogleFonts.cairo(),
                       ),
                       const SizedBox(height: 20),
                       _dialogLoading
@@ -97,7 +104,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                               },
                               child: ElevatedButton.icon(
                                 icon: const Icon(Icons.attach_file),
-                                label: const Text("اختر ملف PDF"),
+                                label: Text(
+                                  "اختر ملف PDF",
+                                  style: GoogleFonts.cairo(),
+                                ),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue[700],
                                   shape: RoundedRectangleBorder(
@@ -111,9 +121,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                 onPressed: () async {
                                   if (fileNameInput.trim().isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
                                           "يرجى إدخال اسم الملف قبل اختيار الملف",
+                                          style: GoogleFonts.cairo(),
                                         ),
                                         backgroundColor: Colors.redAccent,
                                       ),
@@ -132,8 +143,11 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                       );
                                   if (result == null || result.files.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("لم يتم اختيار أي ملف"),
+                                      SnackBar(
+                                        content: Text(
+                                          "لم يتم اختيار أي ملف",
+                                          style: GoogleFonts.cairo(),
+                                        ),
                                         backgroundColor: Colors.redAccent,
                                       ),
                                     );
@@ -145,9 +159,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                   final file = result.files.single;
                                   if (file.extension?.toLowerCase() != 'pdf') {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
                                           "يرجى اختيار ملفات PDF فقط",
+                                          style: GoogleFonts.cairo(),
                                         ),
                                         backgroundColor: Colors.redAccent,
                                       ),
@@ -158,9 +173,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                     return;
                                   } else if (file.path == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
                                           "خطأ: مسار الملف غير متوفر",
+                                          style: GoogleFonts.cairo(),
                                         ),
                                         backgroundColor: Colors.redAccent,
                                       ),
@@ -179,9 +195,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                       ).user;
                                   if (currentUser == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
                                           "خطأ: المستخدم غير موجود",
+                                          style: GoogleFonts.cairo(),
                                         ),
                                         backgroundColor: Colors.redAccent,
                                       ),
@@ -205,6 +222,7 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                       SnackBar(
                                         content: Text(
                                           "تم رفع الملف '$fileNameInput' بنجاح",
+                                          style: GoogleFonts.cairo(),
                                         ),
                                         backgroundColor: Colors.green[600],
                                       ),
@@ -217,7 +235,10 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text("خطأ في رفع الملف: $e"),
+                                        content: Text(
+                                          "خطأ في رفع الملف: $e",
+                                          style: GoogleFonts.cairo(),
+                                        ),
                                         backgroundColor: Colors.redAccent,
                                       ),
                                     );
@@ -237,7 +258,7 @@ class _FileUploadScreenState extends State<FileUploadScreen>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("إلغاء"),
+                  child: Text("إلغاء", style: GoogleFonts.cairo()),
                 ),
               ],
             );
@@ -267,9 +288,9 @@ class _FileUploadScreenState extends State<FileUploadScreen>
             ),
           ),
         ),
-        title: const Text(
+        title: Text(
           "رفع ملف",
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -283,7 +304,7 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                 ? const CircularProgressIndicator()
                 : ElevatedButton.icon(
                   icon: const Icon(Icons.file_upload),
-                  label: const Text("رفع ملف"),
+                  label: Text("رفع ملف", style: GoogleFonts.cairo()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue[700],
                     padding: const EdgeInsets.symmetric(

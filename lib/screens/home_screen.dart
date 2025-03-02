@@ -10,6 +10,7 @@ import 'package:school_platform/screens/folder_upload_screen.dart';
 import 'package:school_platform/screens/folder_contents_screen.dart';
 import 'package:school_platform/screens/reports_screen.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen>
   // متغير لتخزين secureStorage (يُستخدم لتسجيل الدخول الآمن)
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
+  // متغير لتخزين اسم المدرسة
+  String? _schoolName;
+
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -49,6 +53,23 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeInOut,
     );
     _animationController.forward();
+
+    // جلب اسم المدرسة
+    _fetchSchoolName();
+  }
+
+  /// دالة لجلب اسم المدرسة من قاعدة البيانات
+  Future<void> _fetchSchoolName() async {
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user == null) return;
+    try {
+      final name = await MySQLDataService.instance.getSchoolName(user.schoolId);
+      setState(() {
+        _schoolName = name;
+      });
+    } catch (e) {
+      print("Error fetching school name: $e");
+    }
   }
 
   @override
@@ -125,18 +146,21 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Icon(Icons.logout, size: 60, color: Colors.redAccent),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'تسجيل الخروج',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'هل أنت متأكد من تسجيل الخروج؟',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
+                      style: GoogleFonts.cairo(
+                        fontSize: 16,
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -154,9 +178,9 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text(
+                          child: Text(
                             'تسجيل الخروج',
-                            style: TextStyle(fontSize: 16),
+                            style: GoogleFonts.cairo(fontSize: 16),
                           ),
                         ),
                         OutlinedButton(
@@ -171,9 +195,9 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text(
+                          child: Text(
                             'إلغاء',
-                            style: TextStyle(
+                            style: GoogleFonts.cairo(
                               fontSize: 16,
                               color: Colors.redAccent,
                             ),
@@ -219,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("تعديل المجلد"),
+          title: Text("تعديل المجلد", style: GoogleFonts.cairo()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -234,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen>
                     gradeOptions.map((grade) {
                       return DropdownMenuItem<String>(
                         value: grade,
-                        child: Text(grade),
+                        child: Text(grade, style: GoogleFonts.cairo()),
                       );
                     }).toList(),
                 onChanged: (value) {
@@ -249,22 +273,20 @@ class _HomeScreenState extends State<HomeScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("إلغاء"),
+              child: Text("إلغاء", style: GoogleFonts.cairo()),
             ),
             ElevatedButton(
               onPressed: () {
-                // إنشاء نسخة جديدة من Folder مع القيم المُحدّثة
                 final updatedFolder = Folder(
                   id: folder.id,
                   name: nameController.text,
                   grade: selectedGrade,
-                  schoolId: folder.schoolId, // تمرير schoolId المطلوب
-                  userId: folder.userId, // تمرير userId المطلوب
-                  // إضافة باقي الخصائص إذا كانت مطلوبة
+                  schoolId: folder.schoolId,
+                  userId: folder.userId,
                 );
                 Navigator.pop(context, updatedFolder);
               },
-              child: const Text("حفظ"),
+              child: Text("حفظ", style: GoogleFonts.cairo()),
             ),
           ],
         );
@@ -273,13 +295,14 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (result != null) {
       try {
-        // استدعاء دالة التحديث في قاعدة البيانات مع الكائن المُحدّث
         await MySQLDataService.instance.updateFolder(result);
         setState(() {});
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('فشل تعديل المجلد: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل تعديل المجلد: $e', style: GoogleFonts.cairo()),
+          ),
+        );
       }
     }
   }
@@ -287,24 +310,26 @@ class _HomeScreenState extends State<HomeScreen>
   // دالة حذف المجلد
   Future<void> _deleteFolder(Folder folder) async {
     try {
-      // تأكيد الحذف من المستخدم
       bool confirm =
           await showDialog(
             context: context,
             builder: (context) {
               return AlertDialog(
-                title: const Text("حذف المجلد"),
-                content: const Text("هل أنت متأكد من حذف هذا المجلد؟"),
+                title: Text("حذف المجلد", style: GoogleFonts.cairo()),
+                content: Text(
+                  "هل أنت متأكد من حذف هذا المجلد؟",
+                  style: GoogleFonts.cairo(),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text("إلغاء"),
+                    child: Text("إلغاء", style: GoogleFonts.cairo()),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
-                    child: const Text(
+                    child: Text(
                       "حذف",
-                      style: TextStyle(color: Colors.red),
+                      style: GoogleFonts.cairo(color: Colors.red),
                     ),
                   ),
                 ],
@@ -314,24 +339,22 @@ class _HomeScreenState extends State<HomeScreen>
           false;
 
       if (confirm) {
-        // الحصول على المستخدم الحالي لاستخدام schoolId كمعامل ثاني
         final user = Provider.of<UserProvider>(context, listen: false).user!;
-        // استدعاء الخدمة لحذف المجلد من قاعدة البيانات مع تمرير schoolId
         await MySQLDataService.instance.deleteFolder(folder.id!, user.schoolId);
-        // إعادة تحميل المجلدات لتحديث الواجهة
         setState(() {});
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل حذف المجلد: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل حذف المجلد: $e', style: GoogleFonts.cairo()),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context).user;
-    // إذا لم يكن هناك مستخدم، إعادة التوجيه إلى شاشة تسجيل الدخول
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/login');
@@ -349,7 +372,12 @@ class _HomeScreenState extends State<HomeScreen>
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text('خطأ: ${snapshot.error}'));
+              return Center(
+                child: Text(
+                  'خطأ: ${snapshot.error}',
+                  style: GoogleFonts.cairo(),
+                ),
+              );
             }
             final daysLeft = snapshot.data;
             return _buildBodyWithSubscriptionText(user, daysLeft);
@@ -419,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen>
       color: textColor.withOpacity(0.2),
       child: Text(
         message,
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           color: textColor,
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -452,19 +480,19 @@ class _HomeScreenState extends State<HomeScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'المجلدات',
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2F62FF),
+                      color: const Color(0xFF2F62FF),
                     ),
                   ),
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'فلترة حسب المرحلة: ',
-                        style: TextStyle(
+                        style: GoogleFonts.cairo(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey,
@@ -494,8 +522,8 @@ class _HomeScreenState extends State<HomeScreen>
                                     value: level,
                                     child: Text(
                                       level,
-                                      style: const TextStyle(
-                                        color: Color(0xFF2F62FF),
+                                      style: GoogleFonts.cairo(
+                                        color: const Color(0xFF2F62FF),
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -592,7 +620,7 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       Text(
                         folder.name,
-                        style: TextStyle(
+                        style: GoogleFonts.cairo(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: folderColor,
@@ -613,7 +641,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         child: Text(
                           'المرحلة: ${folder.grade}',
-                          style: TextStyle(
+                          style: GoogleFonts.cairo(
                             fontSize: 14,
                             color: folderColor,
                             fontWeight: FontWeight.w500,
@@ -694,11 +722,11 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 64),
+            Icon(Icons.error_outline, color: Colors.red, size: 64),
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.red,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -709,7 +737,7 @@ class _HomeScreenState extends State<HomeScreen>
             ElevatedButton.icon(
               onPressed: () => setState(() {}),
               icon: const Icon(Icons.refresh),
-              label: const Text("إعادة المحاولة"),
+              label: Text("إعادة المحاولة", style: GoogleFonts.cairo()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
@@ -738,9 +766,9 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             Icon(Icons.folder_off, color: Colors.grey.shade400, size: 80),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               "لا يوجد مجلدات",
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.grey,
                 fontSize: 22,
                 fontWeight: FontWeight.w500,
@@ -752,7 +780,10 @@ class _HomeScreenState extends State<HomeScreen>
               selectedFilter != 'الكل'
                   ? "لا توجد مجلدات للمرحلة: $selectedFilter"
                   : "لم يتم إضافة أي مجلدات بعد",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+              style: GoogleFonts.cairo(
+                color: Colors.grey.shade600,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
             ),
             if (Provider.of<UserProvider>(context).user?.role.toLowerCase() ==
@@ -771,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen>
                   }
                 },
                 icon: const Icon(Icons.add),
-                label: const Text("إضافة مجلد جديد"),
+                label: Text("إضافة مجلد جديد", style: GoogleFonts.cairo()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2F62FF),
                   foregroundColor: Colors.white,
@@ -833,7 +864,7 @@ class _HomeScreenState extends State<HomeScreen>
                 },
                 backgroundColor: const Color(0xFF2F62FF),
                 icon: const Icon(Icons.add_circle, color: Colors.white),
-                label: const Text('إضافة مجلد'),
+                label: Text('إضافة مجلد', style: GoogleFonts.cairo()),
               ),
             ),
           ),
@@ -841,7 +872,7 @@ class _HomeScreenState extends State<HomeScreen>
         : null;
   }
 
-  PreferredSizeWidget _buildAppBar(User? user) {
+  PreferredSizeWidget _buildAppBar(User user) {
     return AppBar(
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -858,52 +889,68 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "الصفحة الرئيسية",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          if (user != null)
-            Text(
-              "مرحباً ${user.username}",
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Colors.white70,
+      automaticallyImplyLeading: false,
+      title: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _schoolName ?? "جاري التحميل...",
+                    style: GoogleFonts.cairo(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    "مرحباً ${user.username}",
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
             ),
-        ],
-      ),
-      actions: [
-        if (user != null && user.role.toLowerCase() == "admin") ...[
-          IconButton(
-            icon: const Icon(Icons.bar_chart, color: Colors.white),
-            tooltip: "عرض التقارير",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ReportsScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            tooltip: "إدارة المستخدمين",
-            onPressed: () => Navigator.pushNamed(context, "/userManagement"),
-          ),
-        ],
-        IconButton(
-          icon: const Icon(Icons.exit_to_app, color: Colors.white),
-          tooltip: "تسجيل الخروج",
-          onPressed: _logout,
+            Row(
+              children: [
+                if (user.role.toLowerCase() == "admin") ...[
+                  IconButton(
+                    icon: const Icon(Icons.bar_chart, color: Colors.white),
+                    tooltip: "عرض التقارير",
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReportsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.person, color: Colors.white),
+                    tooltip: "إدارة المستخدمين",
+                    onPressed:
+                        () => Navigator.pushNamed(context, "/userManagement"),
+                  ),
+                ],
+                IconButton(
+                  icon: const Icon(Icons.exit_to_app, color: Colors.white),
+                  tooltip: "تسجيل الخروج",
+                  onPressed: _logout,
+                ),
+              ],
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

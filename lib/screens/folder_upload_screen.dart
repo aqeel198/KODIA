@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/folder.dart';
 import '../providers/user_provider.dart';
 import '../services/mysql_data_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FolderUploadScreen extends StatefulWidget {
   const FolderUploadScreen({super.key});
@@ -71,7 +72,6 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
       );
 
       try {
-        // استدعاء الدالة التي تضيف المجلد في MySQLDataService
         await MySQLDataService.instance.addFolder(newFolder);
         _showSnackBar('تم إضافة المجلد بنجاح', Colors.green);
         Navigator.pop(context, true);
@@ -86,7 +86,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: GoogleFonts.cairo()),
         backgroundColor: color,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -126,9 +126,9 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
           ),
         ),
       ),
-      title: const Text(
+      title: Text(
         'إضافة مجلد',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -174,9 +174,9 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'أدخل بيانات المجلد',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
@@ -206,7 +206,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
         controller: _folderNameController,
         decoration: InputDecoration(
           labelText: 'اسم المجلد',
-          labelStyle: const TextStyle(fontSize: 18),
+          labelStyle: GoogleFonts.cairo(fontSize: 18),
           prefixIcon: const Icon(Icons.folder, color: Colors.blue),
           filled: true,
           fillColor: Colors.blue[50],
@@ -226,6 +226,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
         validator:
             (val) =>
                 (val == null || val.trim().isEmpty) ? 'أدخل اسم المجلد' : null,
+        style: GoogleFonts.cairo(),
       ),
     );
   }
@@ -239,7 +240,10 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
             educationLevels.map((level) {
               return DropdownMenuItem(
                 value: level,
-                child: Text(level, style: const TextStyle(fontSize: 18)),
+                child: Text(
+                  level,
+                  style: GoogleFonts.cairo(fontSize: 18, color: Colors.black),
+                ),
               );
             }).toList(),
         onChanged: (value) {
@@ -249,7 +253,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
         },
         decoration: InputDecoration(
           labelText: 'المرحلة الدراسية للمجلد',
-          labelStyle: const TextStyle(fontSize: 18),
+          labelStyle: GoogleFonts.cairo(fontSize: 18),
           prefixIcon: const Icon(Icons.school, color: Colors.blue),
           filled: true,
           fillColor: Colors.blue[50],
@@ -266,6 +270,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
             borderSide: BorderSide(color: Colors.blue[400]!, width: 2),
           ),
         ),
+        style: GoogleFonts.cairo(),
       ),
     );
   }
@@ -286,9 +291,9 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
             elevation: 8,
           ),
           onPressed: _uploadFolder,
-          child: const Text(
+          child: Text(
             'إضافة المجلد',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,

@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import '../models/user.dart';
 import '../services/mysql_data_service.dart';
 import 'user_list_screen.dart';
-import 'package:provider/provider.dart'; // <-- أضف هذا للاستفادة من UserProvider
-import '../providers/user_provider.dart'; // <-- لاستيراد UserProvider
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -42,29 +43,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
 
-      // جلب المستخدم الحالي (الذي يفترض أنه Admin) للحصول على schoolId
       final currentAdmin =
           Provider.of<UserProvider>(context, listen: false).user;
       if (currentAdmin == null) {
-        _showSnackBar(
-          'خطأ: لم يتم العثور على معلومات المستخدم',
-          Colors.redAccent,
-        );
+        _showSnackBar('خطأ: لم يتم العثور على معلومات المستخدم', Colors.red);
         setState(() => _loading = false);
         return;
       }
 
-      // إذا كان الدور Admin، لا نستخدم قيمة grade
       final String finalGrade =
           (newRole == 'admin') ? '' : (newGrade.isEmpty ? 'الأول' : newGrade);
 
-      // إنشاء كائن المستخدم الجديد مع ربطه بـ schoolId الخاص بالإدمن
       User newUser = User(
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
         role: newRole,
         grade: finalGrade,
-        schoolId: currentAdmin.schoolId, // <-- التعديل الأهم
+        schoolId: currentAdmin.schoolId,
       );
 
       try {
@@ -73,7 +68,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           newRole == 'admin'
               ? 'تمت إضافة الإدمن بنجاح'
               : 'تمت إضافة المستخدم بنجاح',
-          Colors.green[600]!,
+          Colors.green,
         );
         _resetForm();
       } catch (e) {
@@ -86,7 +81,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showSnackBar(String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: GoogleFonts.cairo()),
         backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -105,9 +100,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _handleError(dynamic e) {
     if (e.toString().contains('Duplicate entry')) {
-      _showSnackBar('المستخدم موجود بالفعل، أدخل اسم آخر', Colors.redAccent);
+      _showSnackBar('المستخدم موجود بالفعل، أدخل اسم آخر', Colors.red);
     } else {
-      _showSnackBar('خطأ في إضافة المستخدم: $e', Colors.redAccent);
+      _showSnackBar('خطأ في إضافة المستخدم: $e', Colors.red);
     }
   }
 
@@ -136,9 +131,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
         ),
       ),
-      title: const Text(
+      title: Text(
         'إدارة المستخدمين',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -169,13 +164,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _buildHeader() {
-    return const Text(
+    return Text(
       'إضافة مستخدم جديد',
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF2F62FF),
+        color: const Color(0xFF2F62FF),
       ),
     );
   }
@@ -236,6 +231,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: labelText,
+        labelStyle: GoogleFonts.cairo(),
         prefixIcon: Icon(prefixIcon),
         filled: true,
         fillColor: Colors.blue[50],
@@ -254,21 +250,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       ),
       obscureText: obscureText,
       validator: validator,
+      style: GoogleFonts.cairo(),
     );
   }
 
   Widget _buildRoleDropdown() {
     return DropdownButtonFormField<String>(
       value: newRole,
-      items: const [
-        DropdownMenuItem(value: 'user', child: Text('مستخدم')),
-        DropdownMenuItem(value: 'admin', child: Text('إدمن')),
+      items: [
+        DropdownMenuItem(
+          value: 'user',
+          child: Text('مستخدم', style: GoogleFonts.cairo(color: Colors.black)),
+        ),
+        DropdownMenuItem(
+          value: 'admin',
+          child: Text('إدمن', style: GoogleFonts.cairo(color: Colors.black)),
+        ),
       ],
       onChanged: (value) {
         if (value != null) {
           setState(() {
             newRole = value;
-            // إذا تم اختيار إدمن، نجعل grade فارغ
             if (newRole == 'admin') {
               newGrade = '';
             } else if (newGrade.isEmpty) {
@@ -279,6 +281,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       },
       decoration: InputDecoration(
         labelText: 'الصلاحية',
+        labelStyle: GoogleFonts.cairo(),
         prefixIcon: const Icon(Icons.admin_panel_settings),
         filled: true,
         fillColor: Colors.blue[50],
@@ -295,6 +298,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           borderSide: BorderSide(color: Colors.blue[400]!, width: 2),
         ),
       ),
+      style: GoogleFonts.cairo(),
     );
   }
 
@@ -304,7 +308,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       items:
           educationLevels
               .map(
-                (level) => DropdownMenuItem(value: level, child: Text(level)),
+                (level) => DropdownMenuItem(
+                  value: level,
+                  child: Text(
+                    level,
+                    style: GoogleFonts.cairo(color: Colors.black),
+                  ),
+                ),
               )
               .toList(),
       onChanged: (value) {
@@ -316,6 +326,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       },
       decoration: InputDecoration(
         labelText: 'المرحلة الدراسية',
+        labelStyle: GoogleFonts.cairo(),
         prefixIcon: const Icon(Icons.school),
         filled: true,
         fillColor: Colors.blue[50],
@@ -332,6 +343,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           borderSide: BorderSide(color: Colors.blue[400]!, width: 2),
         ),
       ),
+      style: GoogleFonts.cairo(),
     );
   }
 
@@ -346,9 +358,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       child:
           _loading
               ? const CircularProgressIndicator(color: Colors.white)
-              : const Text(
+              : Text(
                 'إضافة المستخدم',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: GoogleFonts.cairo(color: Colors.white, fontSize: 16),
               ),
     );
   }
@@ -367,9 +379,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         );
       },
       icon: const Icon(Icons.list_alt, color: Colors.white),
-      label: const Text(
+      label: Text(
         'عرض جميع المستخدمين',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,

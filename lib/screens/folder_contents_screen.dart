@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/folder.dart';
 import '../models/file_record.dart';
 import '../models/link_record.dart';
@@ -57,7 +58,7 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
       ),
       title: Text(
         'مجلد: ${widget.folder.name}',
-        style: const TextStyle(
+        style: GoogleFonts.cairo(
           color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -75,13 +76,13 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
             },
             itemBuilder:
                 (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'file',
-                    child: Text('إضافة ملف'),
+                    child: Text('إضافة ملف', style: GoogleFonts.cairo()),
                   ),
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'link',
-                    child: Text('إضافة رابط'),
+                    child: Text('إضافة رابط', style: GoogleFonts.cairo()),
                   ),
                 ],
             icon: const Icon(Icons.add, color: Colors.white),
@@ -133,10 +134,10 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
       margin: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 22,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF2F62FF),
+          color: const Color(0xFF2F62FF),
         ),
       ),
     );
@@ -269,7 +270,7 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
                   children: [
                     Text(
                       link.title,
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -278,7 +279,10 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
                     if (isAdmin)
                       Text(
                         _truncateUrl(link.url),
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: GoogleFonts.cairo(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
                       ),
                   ],
                 ),
@@ -325,17 +329,20 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('تأكيد الحذف'),
-            content: const Text('هل أنت متأكد من حذف هذا الرابط؟'),
+            title: Text('تأكيد الحذف', style: GoogleFonts.cairo()),
+            content: Text(
+              'هل أنت متأكد من حذف هذا الرابط؟',
+              style: GoogleFonts.cairo(),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('إلغاء'),
+                child: Text('إلغاء', style: GoogleFonts.cairo()),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('حذف'),
+                child: Text('حذف', style: GoogleFonts.cairo()),
               ),
             ],
           ),
@@ -361,9 +368,11 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
       if (await canLaunchUrl(Uri.parse(url))) {
         await launchUrl(Uri.parse(url));
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('لا يمكن فتح الرابط')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('لا يمكن فتح الرابط', style: GoogleFonts.cairo()),
+          ),
+        );
       }
     }
   }
@@ -374,7 +383,7 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Text(
           message,
-          style: const TextStyle(color: Colors.red, fontSize: 16),
+          style: GoogleFonts.cairo(color: Colors.red, fontSize: 16),
           textAlign: TextAlign.center,
         ),
       ),
@@ -387,7 +396,7 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Text(
           message,
-          style: const TextStyle(color: Colors.grey, fontSize: 16),
+          style: GoogleFonts.cairo(color: Colors.grey, fontSize: 16),
           textAlign: TextAlign.center,
         ),
       ),
@@ -400,9 +409,9 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'إضافة محتوى جديد',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           Row(
@@ -455,7 +464,10 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+              style: GoogleFonts.cairo(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

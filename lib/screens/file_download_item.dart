@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../models/file_record.dart';
 import '../services/mysql_data_service.dart';
 
@@ -47,7 +49,12 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
     if (await fileOnDevice.exists()) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("الملف موجود بالفعل على جهازك")),
+          SnackBar(
+            content: Text(
+              "الملف موجود بالفعل على جهازك",
+              style: GoogleFonts.cairo(),
+            ),
+          ),
         );
       }
       return;
@@ -78,15 +85,22 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
         },
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("تم تنزيل الملف بنجاح")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("تم تنزيل الملف بنجاح", style: GoogleFonts.cairo()),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("حدث خطأ أثناء التحميل: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "حدث خطأ أثناء التحميل: $e",
+              style: GoogleFonts.cairo(),
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -104,15 +118,22 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
       final result = await OpenFile.open(localPath);
       if (result.type != ResultType.done) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("لا يمكن فتح الملف")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("لا يمكن فتح الملف", style: GoogleFonts.cairo()),
+            ),
+          );
         }
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("الملف غير محمل. يرجى تنزيله أولاً.")),
+          SnackBar(
+            content: Text(
+              "الملف غير محمل. يرجى تنزيله أولاً.",
+              style: GoogleFonts.cairo(),
+            ),
+          ),
         );
       }
     }
@@ -123,16 +144,19 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('تأكيد الحذف'),
-          content: const Text('هل أنت متأكد من حذف هذا الملف؟'),
+          title: Text('تأكيد الحذف', style: GoogleFonts.cairo()),
+          content: Text(
+            'هل أنت متأكد من حذف هذا الملف؟',
+            style: GoogleFonts.cairo(),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('إلغاء'),
+              child: Text('إلغاء', style: GoogleFonts.cairo()),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('حذف'),
+              child: Text('حذف', style: GoogleFonts.cairo()),
             ),
           ],
         );
@@ -148,20 +172,25 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
           'schoolId': widget.file.schoolId,
         });
         final response = await Dio().post(
-          'https://xcodeapps.shop/almnsa.php',
+          'http://xcodeapps.shop/almnsa.php',
           data: formData,
         );
         print("Response: ${response.data}");
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("تم حذف الملف")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("تم حذف الملف", style: GoogleFonts.cairo())),
+          );
         }
         widget.onFileUpdated?.call();
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("حدث خطأ أثناء حذف الملف: $e")),
+            SnackBar(
+              content: Text(
+                "حدث خطأ أثناء حذف الملف: $e",
+                style: GoogleFonts.cairo(),
+              ),
+            ),
           );
         }
       }
@@ -179,20 +208,23 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('تعديل الملف'),
+          title: Text('تعديل الملف', style: GoogleFonts.cairo()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'اسم الملف'),
+                decoration: InputDecoration(
+                  labelText: 'اسم الملف',
+                  labelStyle: GoogleFonts.cairo(),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
+              child: Text('إلغاء', style: GoogleFonts.cairo()),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -214,12 +246,17 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
                   Navigator.pop(context);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('حدث خطأ أثناء التعديل: $e')),
+                      SnackBar(
+                        content: Text(
+                          'حدث خطأ أثناء التعديل: $e',
+                          style: GoogleFonts.cairo(),
+                        ),
+                      ),
                     );
                   }
                 }
               },
-              child: const Text('حفظ'),
+              child: Text('حفظ', style: GoogleFonts.cairo()),
             ),
           ],
         );
@@ -241,7 +278,7 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
           leading: const Icon(Icons.insert_drive_file, color: Colors.blue),
           title: Text(
             widget.file.fileName,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
           ),
           subtitle:
               _downloading
@@ -253,6 +290,7 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
                       const SizedBox(height: 4),
                       Text(
                         "جاري التنزيل... ${(_progress * 100).toStringAsFixed(0)}%",
+                        style: GoogleFonts.cairo(),
                       ),
                     ],
                   )

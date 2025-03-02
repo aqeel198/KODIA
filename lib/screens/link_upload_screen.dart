@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../models/folder.dart';
 import '../models/link_record.dart';
 import '../providers/user_provider.dart';
@@ -68,8 +70,8 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
       try {
         await MySQLDataService.instance.uploadLink(newLink);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم رفع الرابط بنجاح'),
+          SnackBar(
+            content: Text('تم رفع الرابط بنجاح', style: GoogleFonts.cairo()),
             backgroundColor: Colors.green,
           ),
         );
@@ -77,7 +79,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("خطأ في رفع الرابط: $e"),
+            content: Text("خطأ في رفع الرابط: $e", style: GoogleFonts.cairo()),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -96,9 +98,11 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("لا يمكن فتح الرابط")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("لا يمكن فتح الرابط", style: GoogleFonts.cairo()),
+        ),
+      );
     }
   }
 
@@ -124,9 +128,9 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
               ),
             ),
           ),
-          title: const Text(
+          title: Text(
             'رفع رابط',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -157,7 +161,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                               child: TextFormField(
                                 decoration: InputDecoration(
                                   labelText: 'عنوان الرابط',
-                                  labelStyle: const TextStyle(fontSize: 18),
+                                  labelStyle: GoogleFonts.cairo(fontSize: 18),
                                   prefixIcon: const Icon(
                                     Icons.title,
                                     color: Colors.blue,
@@ -175,6 +179,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                                             ? 'أدخل عنوان الرابط'
                                             : null,
                                 onChanged: (val) => linkTitle = val,
+                                style: GoogleFonts.cairo(),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -183,7 +188,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                               child: TextFormField(
                                 decoration: InputDecoration(
                                   labelText: 'رابط URL',
-                                  labelStyle: const TextStyle(fontSize: 18),
+                                  labelStyle: GoogleFonts.cairo(fontSize: 18),
                                   prefixIcon: const Icon(
                                     Icons.link,
                                     color: Colors.blue,
@@ -201,6 +206,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                                             ? 'أدخل الرابط'
                                             : null,
                                 onChanged: (val) => linkUrl = val,
+                                style: GoogleFonts.cairo(),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -230,9 +236,9 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                                     elevation: 8,
                                   ),
                                   onPressed: _uploadLink,
-                                  child: const Text(
+                                  child: Text(
                                     'رفع الرابط',
-                                    style: TextStyle(
+                                    style: GoogleFonts.cairo(
                                       color: Colors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -248,7 +254,7 @@ class _LinkUploadScreenState extends State<LinkUploadScreen>
                                 onTap: () => _launchURL(linkUrl),
                                 child: Text(
                                   linkTitle.isNotEmpty ? linkTitle : linkUrl,
-                                  style: const TextStyle(
+                                  style: GoogleFonts.cairo(
                                     color: Colors.blue,
                                     decoration: TextDecoration.underline,
                                     fontSize: 18,
