@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/link_record.dart';
 
 class EditLinkDialog extends StatefulWidget {
@@ -40,7 +41,10 @@ class _EditLinkDialogState extends State<EditLinkDialog> {
           children: [
             Text(
               'تعديل الرابط',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: GoogleFonts.cairo(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -97,8 +101,10 @@ class _EditLinkDialogState extends State<EditLinkDialog> {
       ),
       child: TextField(
         controller: controller,
+        style: GoogleFonts.cairo(),
         decoration: InputDecoration(
           labelText: label,
+          labelStyle: GoogleFonts.cairo(),
           prefixIcon: Icon(icon, color: const Color(0xFF2F62FF)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -123,7 +129,7 @@ class _EditLinkDialogState extends State<EditLinkDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: Text(label),
+      child: Text(label, style: GoogleFonts.cairo()),
     );
   }
 }
