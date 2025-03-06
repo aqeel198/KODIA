@@ -313,10 +313,16 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Text("إلغاء", style: GoogleFonts.cairo()),
                   ),
                   TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: () => Navigator.pop(context, true),
                     child: Text(
                       "حذف",
-                      style: GoogleFonts.cairo(color: Colors.red),
+                      style: GoogleFonts.cairo(color: Colors.white),
                     ),
                   ),
                 ],
