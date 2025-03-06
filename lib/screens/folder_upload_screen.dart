@@ -235,7 +235,6 @@ class _FolderUploadScreenState extends State<FolderUploadScreen>
     return Tooltip(
       message: 'اختر المرحلة الدراسية للمجلد',
       child: DropdownButtonFormField<String>(
-        isExpanded: true, // تأكد من ظهور النص كاملاً
         value: folderGrade,
         items:
             educationLevels.map((level) {

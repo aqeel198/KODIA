@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // محاولة تسجيل الدخول التلقائي
+    _checkLoginStatus(); // محاولة تسجيل الدخول التلقائي إذا كانت البيانات مخزنة
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -62,40 +62,46 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  /// التحقق من بيانات التسجيل المخزنة
+  /// التحقق من بيانات تسجيل الدخول المخزنة بشكل آمن
   Future<void> _checkLoginStatus() async {
     String? storedUsername = await secureStorage.read(key: 'username');
     String? storedPassword = await secureStorage.read(key: 'password');
     String? storedSchoolCode = await secureStorage.read(key: 'schoolCode');
 
+    // إذا كانت بيانات الدخول المخزنة متوفرة
     if (storedUsername != null &&
         storedPassword != null &&
         storedSchoolCode != null) {
       try {
         setState(() => _loading = true);
 
-        // تسجيل الدخول ببيانات التخزين الآمن
+        // 1) تسجيل الدخول ببيانات التخزين الآمن
         User? user = await MySQLDataService.instance.loginUser(
           storedUsername,
           storedPassword,
           storedSchoolCode,
         );
+
+        // 2) إذا نجح تسجيل الدخول
         if (user != null && mounted) {
-          // جلب بيانات المدرسة
+          // 3) نجلب بيانات المدرسة من الـ API
           final schoolDetails = await ApiService.fetchSchoolDetails(
             storedSchoolCode.trim(),
           );
 
+          // 4) نحدّث كائن user ليحوي اسم المدرسة والشعار
           user = user.copyWith(
             schoolName: schoolDetails['name'] ?? '',
             logoUrl: schoolDetails['logo_url'] ?? '',
           );
 
+          // 5) نحدّث الـ UserProvider بكائن user المحدث
           Provider.of<UserProvider>(context, listen: false).setUser(user);
 
-          // الانتقال للصفحة الرئيسية
+          // 6) الانتقال إلى الشاشة الرئيسية
           Navigator.pushReplacementNamed(context, '/home');
         } else {
+          // إذا كانت البيانات غير صالحة أو حدث خطأ
           setState(() => _loading = false);
         }
       } catch (e) {
@@ -105,21 +111,21 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// تسجيل الدخول اليدوي
+  /// دالة تسجيل الدخول اليدوي
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
-
       try {
-        // تسجيل الدخول من قاعدة البيانات
+        // 1) تسجيل الدخول باستخدام MySQLDataService
         User? user = await MySQLDataService.instance.loginUser(
           _usernameController.text.trim(),
           _passwordController.text.trim(),
           _schoolCodeController.text.trim(),
         );
 
+        // 2) إن كان تسجيل الدخول ناجحًا
         if (user != null) {
-          // حفظ بيانات الدخول
+          // 2-1) حفظ بيانات تسجيل الدخول بشكل آمن
           await secureStorage.write(
             key: 'username',
             value: _usernameController.text.trim(),
@@ -133,21 +139,21 @@ class _LoginScreenState extends State<LoginScreen>
             value: _schoolCodeController.text.trim(),
           );
 
-          // جلب بيانات المدرسة
+          // 2-2) جلب بيانات المدرسة (الاسم والأيقونة) من الـ API
           final schoolDetails = await ApiService.fetchSchoolDetails(
             _schoolCodeController.text.trim(),
           );
 
-          // إضافة اسم المدرسة وشعارها إلى user
+          // 2-3) نحدّث كائن user بالاسم والشعار
           user = user.copyWith(
             schoolName: schoolDetails['name'] ?? '',
             logoUrl: schoolDetails['logo_url'] ?? '',
           );
 
-          // وضع user في الـ Provider
+          // 2-4) تخزين user المحدث في الـ UserProvider
           Provider.of<UserProvider>(context, listen: false).setUser(user);
 
-          // إظهار إشعار نجاح
+          // 2-5) عرض إشعار نجاح قبل الانتقال
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -170,17 +176,19 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           );
 
-          // عرض حوار ترحيبي (سيغلق تلقائيًا بعد 2 ثانية)
-          await _showWelcomeDialog(user);
-
-          // بعد إغلاق الحوار، نذهب للشاشة الرئيسية
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
+          // 2-6) تأخير الانتقال 1.2 ثانية لإتاحة عرض الـ SnackBar
+          Future.delayed(const Duration(milliseconds: 1200), () {
+            if (mounted) {
+              // 2-7) الانتقال للشاشة الرئيسية
+              Navigator.pushReplacementNamed(context, '/home');
+            }
+          });
         } else {
+          // إن كانت بيانات غير صحيحة
           _showErrorSnackBar('بيانات غير صحيحة أو رمز مدرسة غير صحيح');
         }
       } catch (e) {
+        // في حالة اشتراك منتهي أو أي خطأ آخر
         if (e.toString().contains("اشتراك المنصة منتهي")) {
           _showErrorSnackBar('اشتراك المنصة منتهي. يجب تجديد الاشتراك.');
         } else {
@@ -194,67 +202,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// حوار ترحيب يُغلق تلقائيًا بعد 2 ثوان
-  Future<void> _showWelcomeDialog(User user) async {
-    final schoolLogo = user.logoUrl ?? "";
-    final schoolName = user.schoolName ?? "";
-    final userName = user.username;
-
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        // إغلاقه تلقائيًا بعد 2 ثانية
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted && Navigator.canPop(ctx)) {
-            Navigator.pop(ctx); // إغلاق الـ Dialog
-          }
-        });
-
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (schoolLogo.isNotEmpty)
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(schoolLogo),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              else
-                const Icon(Icons.school, size: 80, color: Colors.blueGrey),
-              const SizedBox(height: 16),
-              Text(
-                'مرحباً $userName',
-                style: GoogleFonts.cairo(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (schoolName.isNotEmpty)
-                Text(
-                  'أهلاً بك في $schoolName',
-                  style: GoogleFonts.cairo(fontSize: 16, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+  /// دالة لعرض رسالة خطأ في SnackBar
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

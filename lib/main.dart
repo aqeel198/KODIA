@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         return MaterialApp(
-          title: 'EduNi',
+          title: 'My Legendary Project',
           debugShowCheckedModeBanner: false,
           theme:
               userProvider.user != null

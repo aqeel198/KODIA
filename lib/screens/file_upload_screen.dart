@@ -51,10 +51,6 @@ class _FileUploadScreenState extends State<FileUploadScreen>
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -65,230 +61,197 @@ class _FileUploadScreenState extends State<FileUploadScreen>
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              content: SingleChildScrollView(
+              content: Card(
+                elevation: 6,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: EdgeInsets.zero,
                 child: Padding(
-                  // نضيف Padding من الأسفل يساوي المساحة التي يشغلها الكيبورد
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // حقل إدخال اسم الملف
-                          TextField(
-                            autofocus: true,
-                            onChanged: (value) => fileNameInput = value,
-                            decoration: InputDecoration(
-                              labelText: "اسم الملف",
-                              labelStyle: GoogleFonts.cairo(),
-                              hintText: "مثال: ملف عربي",
-                              hintStyle: GoogleFonts.cairo(),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            style: GoogleFonts.cairo(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // حقل إدخال اسم الملف
+                      TextField(
+                        autofocus: true,
+                        onChanged: (value) => fileNameInput = value,
+                        decoration: InputDecoration(
+                          labelText: "اسم الملف",
+                          labelStyle: GoogleFonts.cairo(),
+                          hintText: "مثال: ملف عربي",
+                          hintStyle: GoogleFonts.cairo(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 20),
-                          _dialogLoading
-                              ? const CircularProgressIndicator()
-                              : MouseRegion(
-                                onEnter: (_) => _buttonController.forward(),
-                                onExit: (_) => _buttonController.reverse(),
-                                child: AnimatedBuilder(
-                                  animation: _buttonController,
-                                  builder: (context, child) {
-                                    double scale = 1 + _buttonController.value;
-                                    return Transform.scale(
-                                      scale: scale,
-                                      child: child,
-                                    );
-                                  },
-                                  // نلف الزر داخل SizedBox لتحديد العرض
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton.icon(
-                                      icon: const Icon(Icons.attach_file),
-                                      label: Text(
-                                        "اختر ملف PDF",
-                                        style: GoogleFonts.cairo(),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue[700],
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 12,
-                                        ),
-                                      ),
-                                      onPressed: () async {
-                                        // التحقق من إدخال اسم الملف
-                                        if (fileNameInput.trim().isEmpty) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "يرجى إدخال اسم الملف قبل اختيار الملف",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          return;
-                                        }
-                                        setStateDialog(() {
-                                          _dialogLoading = true;
-                                        });
-                                        // فتح File Picker لملفات PDF
-                                        FilePickerResult? result =
-                                            await FilePicker.platform.pickFiles(
-                                              type: FileType.custom,
-                                              allowedExtensions: ['pdf'],
-                                            );
-                                        if (result == null ||
-                                            result.files.isEmpty) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "لم يتم اختيار أي ملف",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          setStateDialog(() {
-                                            _dialogLoading = false;
-                                          });
-                                          return;
-                                        }
-                                        final file = result.files.single;
-                                        if (file.extension?.toLowerCase() !=
-                                            'pdf') {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "يرجى اختيار ملفات PDF فقط",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          setStateDialog(() {
-                                            _dialogLoading = false;
-                                          });
-                                          return;
-                                        } else if (file.path == null) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "خطأ: مسار الملف غير متوفر",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          setStateDialog(() {
-                                            _dialogLoading = false;
-                                          });
-                                          return;
-                                        }
-
-                                        // الحصول على المستخدم الحالي
-                                        final currentUser =
-                                            Provider.of<UserProvider>(
-                                              context,
-                                              listen: false,
-                                            ).user;
-                                        if (currentUser == null) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "خطأ: المستخدم غير موجود",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                          setStateDialog(() {
-                                            _dialogLoading = false;
-                                          });
-                                          return;
-                                        }
-
-                                        try {
-                                          // رفع الملف
-                                          await UploadService.uploadPdfFile(
-                                            filePath: file.path!,
-                                            fileName: fileNameInput,
-                                            folderId: widget.folder.id!,
-                                            userId: currentUser.id!,
-                                            schoolId: currentUser.schoolId,
-                                          );
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "تم رفع الملف '$fileNameInput' بنجاح",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor:
-                                                  Colors.green[600],
-                                            ),
-                                          );
-                                          Navigator.of(
-                                            context,
-                                          ).pop(); // إغلاق الحوار
-                                          Navigator.pop(
-                                            context,
-                                            true,
-                                          ); // إغلاق الشاشة
-                                        } catch (e) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                "خطأ في رفع الملف: $e",
-                                                style: GoogleFonts.cairo(),
-                                              ),
-                                              backgroundColor: Colors.redAccent,
-                                            ),
-                                          );
-                                        } finally {
-                                          setStateDialog(() {
-                                            _dialogLoading = false;
-                                          });
-                                        }
-                                      },
-                                    ),
+                        ),
+                        style: GoogleFonts.cairo(),
+                      ),
+                      const SizedBox(height: 20),
+                      _dialogLoading
+                          ? const CircularProgressIndicator()
+                          : MouseRegion(
+                            onEnter: (_) => _buttonController.forward(),
+                            onExit: (_) => _buttonController.reverse(),
+                            child: AnimatedBuilder(
+                              animation: _buttonController,
+                              builder: (context, child) {
+                                double scale = 1 + _buttonController.value;
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: child,
+                                );
+                              },
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.attach_file),
+                                label: Text(
+                                  "اختر ملف PDF",
+                                  style: GoogleFonts.cairo(),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[700],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
                                   ),
                                 ),
+                                onPressed: () async {
+                                  if (fileNameInput.trim().isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "يرجى إدخال اسم الملف قبل اختيار الملف",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  setStateDialog(() {
+                                    _dialogLoading = true;
+                                  });
+                                  // فتح File Picker لملفات PDF
+                                  FilePickerResult? result = await FilePicker
+                                      .platform
+                                      .pickFiles(
+                                        type: FileType.custom,
+                                        allowedExtensions: ['pdf'],
+                                      );
+                                  if (result == null || result.files.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "لم يتم اختيار أي ملف",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    setStateDialog(() {
+                                      _dialogLoading = false;
+                                    });
+                                    return;
+                                  }
+                                  final file = result.files.single;
+                                  if (file.extension?.toLowerCase() != 'pdf') {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "يرجى اختيار ملفات PDF فقط",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    setStateDialog(() {
+                                      _dialogLoading = false;
+                                    });
+                                    return;
+                                  } else if (file.path == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "خطأ: مسار الملف غير متوفر",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    setStateDialog(() {
+                                      _dialogLoading = false;
+                                    });
+                                    return;
+                                  }
+
+                                  // الحصول على المستخدم الحالي
+                                  final currentUser =
+                                      Provider.of<UserProvider>(
+                                        context,
+                                        listen: false,
+                                      ).user;
+                                  if (currentUser == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "خطأ: المستخدم غير موجود",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                    setStateDialog(() {
+                                      _dialogLoading = false;
+                                    });
+                                    return;
+                                  }
+
+                                  try {
+                                    // رفع الملف كملف جديد مع اسم مخصص وتمرير schoolId
+                                    await UploadService.uploadPdfFile(
+                                      filePath: file.path!,
+                                      fileName: fileNameInput,
+                                      folderId: widget.folder.id!,
+                                      userId: currentUser.id!,
+                                      schoolId: currentUser.schoolId,
+                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "تم رفع الملف '$fileNameInput' بنجاح",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.green[600],
+                                      ),
+                                    );
+                                    Navigator.of(context).pop(); // إغلاق الحوار
+                                    Navigator.pop(
+                                      context,
+                                      true,
+                                    ); // إغلاق الشاشة
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "خطأ في رفع الملف: $e",
+                                          style: GoogleFonts.cairo(),
+                                        ),
+                                        backgroundColor: Colors.redAccent,
+                                      ),
+                                    );
+                                  } finally {
+                                    setStateDialog(() {
+                                      _dialogLoading = false;
+                                    });
+                                  }
+                                },
                               ),
-                        ],
-                      ),
-                    ),
+                            ),
+                          ),
+                    ],
                   ),
                 ),
               ),
