@@ -152,7 +152,9 @@ class MySQLDataService implements DataService {
       'SELECT COUNT(*) AS count FROM users WHERE username = ? AND schoolId = ?',
       [user.username, user.schoolId],
     );
-    int count = results.first.fields['count'] as int;
+    // تحويل القيمة إلى int بشكل موثوق
+    int count = int.parse(results.first.fields['count'].toString());
+    print("Debug: عدد المستخدمين بنفس الاسم لهذه المدرسة = $count");
     if (count > 0) {
       throw Exception('Duplicate entry');
     }

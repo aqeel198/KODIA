@@ -98,9 +98,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     });
   }
 
+  // تعديل رسالة الخطأ لتوضيح أن التحقق يتم بناءً على نفس المدرسة
   void _handleError(dynamic e) {
     if (e.toString().contains('Duplicate entry')) {
-      _showSnackBar('المستخدم موجود بالفعل، أدخل اسم آخر', Colors.red);
+      _showSnackBar(
+        'المستخدم موجود بالفعل في هذه المدرسة، أدخل اسم آخر',
+        Colors.red,
+      );
     } else {
       _showSnackBar('خطأ في إضافة المستخدم: $e', Colors.red);
     }

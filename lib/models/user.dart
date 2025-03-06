@@ -7,6 +7,10 @@ class User {
   final int schoolId; // معرف المدرسة
   final String schoolCode; // رمز المدرسة
 
+  // الحقول الجديدة
+  final String? schoolName;
+  final String? logoUrl;
+
   User({
     this.id,
     required this.username,
@@ -15,6 +19,8 @@ class User {
     this.grade,
     required this.schoolId,
     this.schoolCode = "",
+    this.schoolName,
+    this.logoUrl,
   });
 
   /// ينشئ كائن User من خريطة (Map)
@@ -27,6 +33,8 @@ class User {
       grade: map['grade']?.toString(),
       schoolId: map['schoolId'] as int,
       schoolCode: map['schoolCode'] as String? ?? '',
+      schoolName: map['schoolName'] as String?,
+      logoUrl: map['logoUrl'] as String?,
     );
   }
 
@@ -39,6 +47,8 @@ class User {
     'grade': grade,
     'schoolId': schoolId,
     'schoolCode': schoolCode,
+    'schoolName': schoolName,
+    'logoUrl': logoUrl,
   };
 
   /// ينشئ نسخة جديدة من User مع التعديلات المطلوبة
@@ -50,6 +60,8 @@ class User {
     String? grade,
     int? schoolId,
     String? schoolCode,
+    String? schoolName,
+    String? logoUrl,
   }) {
     return User(
       id: id ?? this.id,
@@ -59,6 +71,8 @@ class User {
       grade: grade ?? this.grade,
       schoolId: schoolId ?? this.schoolId,
       schoolCode: schoolCode ?? this.schoolCode,
+      schoolName: schoolName ?? this.schoolName,
+      logoUrl: logoUrl ?? this.logoUrl,
     );
   }
 }

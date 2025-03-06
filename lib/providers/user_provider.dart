@@ -4,7 +4,6 @@ import '../models/user.dart';
 
 class UserProvider with ChangeNotifier {
   User? _user;
-
   User? get user => _user;
 
   /// تحميل بيانات المستخدم المحفوظة من SharedPreferences
@@ -19,6 +18,10 @@ class UserProvider with ChangeNotifier {
       'schoolCode',
     ); // قيمة schoolCode المحفوظة
 
+    // الحقول الجديدة
+    String? schoolName = prefs.getString('schoolName');
+    String? logoUrl = prefs.getString('logoUrl');
+
     if (role != null &&
         username != null &&
         schoolId != null &&
@@ -30,6 +33,8 @@ class UserProvider with ChangeNotifier {
         grade: grade ?? '',
         schoolId: schoolId,
         schoolCode: schoolCode,
+        schoolName: schoolName,
+        logoUrl: logoUrl,
       );
       notifyListeners();
     }
@@ -42,7 +47,9 @@ class UserProvider with ChangeNotifier {
     required String password,
     required String grade,
     required int schoolId,
-    required String schoolCode, // معلمة schoolCode الجديدة
+    required String schoolCode,
+    String? schoolName, // معلمة schoolName الجديدة
+    String? logoUrl, // معلمة logoUrl الجديدة
   }) async {
     _user = User(
       role: role,
@@ -51,6 +58,8 @@ class UserProvider with ChangeNotifier {
       grade: grade,
       schoolId: schoolId,
       schoolCode: schoolCode,
+      schoolName: schoolName,
+      logoUrl: logoUrl,
     );
     notifyListeners();
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -60,6 +69,14 @@ class UserProvider with ChangeNotifier {
     await prefs.setString('grade', grade);
     await prefs.setInt('schoolId', schoolId);
     await prefs.setString('schoolCode', schoolCode);
+
+    // حفظ الحقول الجديدة إن وُجدت
+    if (schoolName != null) {
+      await prefs.setString('schoolName', schoolName);
+    }
+    if (logoUrl != null) {
+      await prefs.setString('logoUrl', logoUrl);
+    }
   }
 
   /// تسجيل الخروج ومسح بيانات المستخدم
@@ -73,6 +90,10 @@ class UserProvider with ChangeNotifier {
     await prefs.remove('grade');
     await prefs.remove('schoolId');
     await prefs.remove('schoolCode');
+
+    // إزالة الحقول الجديدة
+    await prefs.remove('schoolName');
+    await prefs.remove('logoUrl');
   }
 
   /// تعيين المستخدم مباشرةً (مثلاً من نتيجة تسجيل دخول خارجي)

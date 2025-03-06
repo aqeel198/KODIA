@@ -32,11 +32,7 @@ class _HomeScreenState extends State<HomeScreen>
     'السادس',
   ];
 
-  // متغير لتخزين secureStorage (يُستخدم لتسجيل الدخول الآمن)
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
-
-  // متغير لتخزين اسم المدرسة
-  String? _schoolName;
 
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -44,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+
+    // أنشئ AnimationController لرسوم بسيطة (اختياري)
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -53,23 +51,6 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeInOut,
     );
     _animationController.forward();
-
-    // جلب اسم المدرسة
-    _fetchSchoolName();
-  }
-
-  /// دالة لجلب اسم المدرسة من قاعدة البيانات
-  Future<void> _fetchSchoolName() async {
-    final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user == null) return;
-    try {
-      final name = await MySQLDataService.instance.getSchoolName(user.schoolId);
-      setState(() {
-        _schoolName = name;
-      });
-    } catch (e) {
-      print("Error fetching school name: $e");
-    }
   }
 
   @override
@@ -88,7 +69,6 @@ class _HomeScreenState extends State<HomeScreen>
       );
       if (subEnd == null) return null;
       final today = DateTime.now();
-      // استخدام التاريخ بدون الوقت
       final todayDate = DateTime(today.year, today.month, today.day);
       final subDate = DateTime(subEnd.year, subEnd.month, subEnd.day);
       return subDate.difference(todayDate).inDays;
@@ -105,9 +85,13 @@ class _HomeScreenState extends State<HomeScreen>
     List<Folder> allFolders = await MySQLDataService.instance.getAllFolders(
       user.schoolId,
     );
+
+    // فلترة حسب دور المستخدم
     if (user.role.toLowerCase() == 'user') {
+      // الطالب يرى فقط مجلداته التي توافق مرحلته
       return allFolders.where((folder) => folder.grade == user.grade).toList();
     } else if (user.role.toLowerCase() == 'admin') {
+      // المدير يستطيع فلترة المجلدات
       return selectedFilter == 'الكل'
           ? allFolders
           : allFolders
@@ -117,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen>
     return allFolders;
   }
 
-  /// دالة تسجيل الخروج المُعدلة باستخدام secureStorage
+  /// دالة تسجيل الخروج
   Future<void> _logout() async {
     bool confirm =
         await showDialog(
@@ -214,17 +198,20 @@ class _HomeScreenState extends State<HomeScreen>
         false;
 
     if (confirm) {
-      // حذف البيانات من secureStorage
+      // مسح بيانات تسجيل الدخول المخزنة
       await secureStorage.delete(key: 'username');
       await secureStorage.delete(key: 'password');
       await secureStorage.delete(key: 'schoolCode');
+
+      // إعادة تعيين user في الـ Provider
       Provider.of<UserProvider>(context, listen: false).setUser(null);
-      // إعادة التوجيه إلى شاشة تسجيل الدخول (المسار '/login')
+
+      // العودة لصفحة تسجيل الدخول
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
-  // دالة تعديل المجلد باستخدام AlertDialog
+  // دالة تعديل المجلد
   Future<void> _updateFolder(Folder folder) async {
     TextEditingController nameController = TextEditingController(
       text: folder.name,
@@ -354,13 +341,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    // نجلب كائن user من UserProvider
     final user = Provider.of<UserProvider>(context).user;
+
+    // إذا كان user غير مهيأ بعد، نعرض شاشة انتظار
     if (user == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(context, '/login');
       });
       return const Scaffold(body: SizedBox());
     }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -393,11 +384,16 @@ class _HomeScreenState extends State<HomeScreen>
       decoration: const BoxDecoration(color: Color(0xFFF5F7FA)),
       child: Column(
         children: [
+          // تنبيه بقرب انتهاء الاشتراك (إن كان Admin)
           if (user.role.toLowerCase() == 'admin' &&
               daysLeft != null &&
               daysLeft <= 30)
             _buildSubscriptionWarning(daysLeft),
+
+          // قسم الفلترة (إن كان Admin)
           if (user.role.toLowerCase() == 'admin') _buildFilterSection(),
+
+          // قائمة المجلدات
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async => setState(() {}),
@@ -531,9 +527,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 }).toList(),
                             onChanged: (value) {
                               if (value != null) {
-                                setState(() {
-                                  selectedFilter = value;
-                                });
+                                setState(() => selectedFilter = value);
                               }
                             },
                           ),
@@ -574,6 +568,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildFolderCard(Folder folder, User user) {
     final bool isAdmin = (user.role.toLowerCase() == 'admin');
     final Color folderColor = _getFolderColor(folder.grade);
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 2,
@@ -872,7 +867,11 @@ class _HomeScreenState extends State<HomeScreen>
         : null;
   }
 
+  /// نقرأ اسم المدرسة والشعار مباشرةً من user
   PreferredSizeWidget _buildAppBar(User user) {
+    final schoolName = user.schoolName ?? "جاري التحميل...";
+    final schoolLogo = user.logoUrl ?? "";
+
     return AppBar(
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -894,31 +893,56 @@ class _HomeScreenState extends State<HomeScreen>
         textDirection: TextDirection.ltr,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // الجهة اليسرى (بالعربية: يمين الشاشة) تضم الشعار واسم المدرسة والترحيب
             Directionality(
               textDirection: TextDirection.rtl,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    _schoolName ?? "جاري التحميل...",
-                    style: GoogleFonts.cairo(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    "مرحباً ${user.username}",
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white70,
-                    ),
+                  // شعار المدرسة
+                  schoolLogo.isNotEmpty
+                      ? Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: NetworkImage(schoolLogo),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                      : const Icon(Icons.school, color: Colors.white, size: 50),
+                  const SizedBox(width: 12),
+                  // نصوص المدرسة والترحيب
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        schoolName,
+                        style: GoogleFonts.cairo(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "مرحباً ${user.username}",
+                        style: GoogleFonts.cairo(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            // الجهة اليمنى (بالعربية: يسار الشاشة) تضم أزرار الإدارة وتسجيل الخروج
             Row(
               children: [
                 if (user.role.toLowerCase() == "admin") ...[

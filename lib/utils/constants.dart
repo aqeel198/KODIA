@@ -1,2 +1,2 @@
 // يمكنك وضع الثوابت العامة هنا
-const String appName = 'KODIA';
+const String appName = 'EduNi';

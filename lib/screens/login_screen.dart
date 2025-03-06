@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../providers/user_provider.dart';
 import '../services/mysql_data_service.dart';
+import '../services/api_service.dart';
 import '../models/user.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _loading = false;
   bool _obscurePassword = true;
+
   AnimationController? _animationController;
   Animation<double>? _scaleAnimation;
   Animation<double>? _opacityAnimation;
@@ -33,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _checkLoginStatus(); // محاولة تسجيل الدخول التلقائي
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -59,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  // التحقق من بيانات تسجيل الدخول المخزنة بشكل آمن
+  /// التحقق من بيانات التسجيل المخزنة
   Future<void> _checkLoginStatus() async {
     String? storedUsername = await secureStorage.read(key: 'username');
     String? storedPassword = await secureStorage.read(key: 'password');
@@ -70,13 +73,27 @@ class _LoginScreenState extends State<LoginScreen>
         storedSchoolCode != null) {
       try {
         setState(() => _loading = true);
+
+        // تسجيل الدخول ببيانات التخزين الآمن
         User? user = await MySQLDataService.instance.loginUser(
           storedUsername,
           storedPassword,
           storedSchoolCode,
         );
         if (user != null && mounted) {
+          // جلب بيانات المدرسة
+          final schoolDetails = await ApiService.fetchSchoolDetails(
+            storedSchoolCode.trim(),
+          );
+
+          user = user.copyWith(
+            schoolName: schoolDetails['name'] ?? '',
+            logoUrl: schoolDetails['logo_url'] ?? '',
+          );
+
           Provider.of<UserProvider>(context, listen: false).setUser(user);
+
+          // الانتقال للصفحة الرئيسية
           Navigator.pushReplacementNamed(context, '/home');
         } else {
           setState(() => _loading = false);
@@ -88,33 +105,49 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  /// تسجيل الدخول اليدوي
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
+
       try {
+        // تسجيل الدخول من قاعدة البيانات
         User? user = await MySQLDataService.instance.loginUser(
-          _usernameController.text,
-          _passwordController.text,
-          _schoolCodeController.text,
+          _usernameController.text.trim(),
+          _passwordController.text.trim(),
+          _schoolCodeController.text.trim(),
         );
+
         if (user != null) {
-          // حفظ بيانات تسجيل الدخول بشكل آمن
+          // حفظ بيانات الدخول
           await secureStorage.write(
             key: 'username',
-            value: _usernameController.text,
+            value: _usernameController.text.trim(),
           );
           await secureStorage.write(
             key: 'password',
-            value: _passwordController.text,
+            value: _passwordController.text.trim(),
           );
           await secureStorage.write(
             key: 'schoolCode',
-            value: _schoolCodeController.text,
+            value: _schoolCodeController.text.trim(),
           );
 
+          // جلب بيانات المدرسة
+          final schoolDetails = await ApiService.fetchSchoolDetails(
+            _schoolCodeController.text.trim(),
+          );
+
+          // إضافة اسم المدرسة وشعارها إلى user
+          user = user.copyWith(
+            schoolName: schoolDetails['name'] ?? '',
+            logoUrl: schoolDetails['logo_url'] ?? '',
+          );
+
+          // وضع user في الـ Provider
           Provider.of<UserProvider>(context, listen: false).setUser(user);
 
-          // عرض إشعار نجاح قبل الانتقال
+          // إظهار إشعار نجاح
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -137,12 +170,13 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           );
 
-          // تأخير الانتقال لتحسين تجربة المستخدم
-          Future.delayed(const Duration(milliseconds: 1200), () {
-            if (mounted) {
-              Navigator.pushReplacementNamed(context, '/home');
-            }
-          });
+          // عرض حوار ترحيبي (سيغلق تلقائيًا بعد 2 ثانية)
+          await _showWelcomeDialog(user);
+
+          // بعد إغلاق الحوار، نذهب للشاشة الرئيسية
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         } else {
           _showErrorSnackBar('بيانات غير صحيحة أو رمز مدرسة غير صحيح');
         }
@@ -158,6 +192,67 @@ class _LoginScreenState extends State<LoginScreen>
         }
       }
     }
+  }
+
+  /// حوار ترحيب يُغلق تلقائيًا بعد 2 ثوان
+  Future<void> _showWelcomeDialog(User user) async {
+    final schoolLogo = user.logoUrl ?? "";
+    final schoolName = user.schoolName ?? "";
+    final userName = user.username;
+
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        // إغلاقه تلقائيًا بعد 2 ثانية
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && Navigator.canPop(ctx)) {
+            Navigator.pop(ctx); // إغلاق الـ Dialog
+          }
+        });
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (schoolLogo.isNotEmpty)
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(schoolLogo),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+              else
+                const Icon(Icons.school, size: 80, color: Colors.blueGrey),
+              const SizedBox(height: 16),
+              Text(
+                'مرحباً $userName',
+                style: GoogleFonts.cairo(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (schoolName.isNotEmpty)
+                Text(
+                  'أهلاً بك في $schoolName',
+                  style: GoogleFonts.cairo(fontSize: 16, color: Colors.black54),
+                  textAlign: TextAlign.center,
+                ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showErrorSnackBar(String message) {
@@ -195,11 +290,11 @@ class _LoginScreenState extends State<LoginScreen>
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
-              colors: [const Color(0xFF2E3192), const Color(0xFF1BFFFF)],
+              colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
             ),
           ),
           child: SafeArea(
@@ -236,7 +331,6 @@ class _LoginScreenState extends State<LoginScreen>
                           .animate()
                           .fadeIn(duration: 600.ms)
                           .scale(delay: 200.ms, duration: 500.ms),
-
                       const SizedBox(height: 30),
 
                       // نص الترحيب
@@ -256,7 +350,6 @@ class _LoginScreenState extends State<LoginScreen>
                             delay: 300.ms,
                             duration: 600.ms,
                           ),
-
                       Text(
                         'قم بتسجيل الدخول للوصول إلى حسابك',
                         style: GoogleFonts.cairo(
@@ -264,7 +357,6 @@ class _LoginScreenState extends State<LoginScreen>
                           color: Colors.white.withOpacity(0.9),
                         ),
                       ).animate().fadeIn(duration: 600.ms, delay: 400.ms),
-
                       const SizedBox(height: 40),
 
                       // بطاقة تسجيل الدخول
@@ -302,7 +394,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   ? 'أدخل اسم المستخدم'
                                                   : null,
                                     ),
-
                                     const SizedBox(height: 24),
 
                                     // حقل كلمة المرور
@@ -333,7 +424,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   ? 'أدخل كلمة المرور'
                                                   : null,
                                     ),
-
                                     const SizedBox(height: 24),
 
                                     // حقل رمز المدرسة
@@ -349,7 +439,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   ? 'أدخل رمز المدرسة'
                                                   : null,
                                     ),
-
                                     const SizedBox(height: 30),
 
                                     // زر تسجيل الدخول
@@ -455,7 +544,6 @@ class _LoginScreenState extends State<LoginScreen>
                                             ),
                                       ),
                                     ),
-
                                     const SizedBox(height: 20),
                                   ],
                                 ),
@@ -470,7 +558,6 @@ class _LoginScreenState extends State<LoginScreen>
                             delay: 500.ms,
                             curve: Curves.easeOutQuad,
                           ),
-
                       const SizedBox(height: 30),
                     ],
                   ),

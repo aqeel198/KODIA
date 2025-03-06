@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         return MaterialApp(
-          title: 'My Legendary Project',
+          title: 'EduNi',
           debugShowCheckedModeBanner: false,
           theme:
               userProvider.user != null
@@ -37,13 +37,15 @@ class MyApp extends StatelessWidget {
           routes: {
             '/splash': (context) => const SplashScreen(),
             '/login': (context) => const LoginScreen(),
-            '/home': (context) => const HomeScreen(),
+            '/home':
+                (context) =>
+                    const HomeScreen(), // يستقبل HomeScreen الـ arguments من LoginScreen
             '/userManagement': (context) => const UserManagementScreen(),
             '/folderUpload': (context) => const FolderUploadScreen(),
           },
-          // onGenerateRoute يمكن استخدامه لالتقاط المسارات غير المعروفة
+          // onGenerateRoute يمكن استخدامه لالتقاط المسارات غير المعروفة إذا لزم الأمر
           onGenerateRoute: (settings) {
-            // يمكنك إعادة توجيه المستخدم هنا
+            // مثال: يمكنك التحقق من settings.name وتمرير الـ arguments للصفحات حسب الحاجة
             return null;
           },
         );

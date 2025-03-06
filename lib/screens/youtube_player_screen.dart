@@ -6,8 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class YoutubePlayerScreen extends StatefulWidget {
   final String videoUrl;
-  const YoutubePlayerScreen({Key? key, required this.videoUrl})
-    : super(key: key);
+  const YoutubePlayerScreen({super.key, required this.videoUrl});
 
   @override
   _YoutubePlayerScreenState createState() => _YoutubePlayerScreenState();
@@ -131,7 +130,6 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('العودة', style: GoogleFonts.cairo()),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
                 padding: const EdgeInsets.symmetric(
@@ -139,6 +137,7 @@ class _YoutubePlayerScreenState extends State<YoutubePlayerScreen>
                   vertical: 12,
                 ),
               ),
+              child: Text('العودة', style: GoogleFonts.cairo()),
             ),
           ],
         ),
