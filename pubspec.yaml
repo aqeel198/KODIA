@@ -56,4 +56,4 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "lib/h.jpg"
+  image_path: "lib/h.png"
