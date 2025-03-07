@@ -415,25 +415,29 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
           ),
           const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildAddContentButton(
-                icon: Icons.insert_drive_file,
-                label: 'إضافة ملف',
-                color: const Color(0xFF3FA9F5),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addFile();
-                },
+              Expanded(
+                child: _buildAddContentButton(
+                  icon: Icons.insert_drive_file,
+                  label: 'إضافة ملف',
+                  color: const Color(0xFF3FA9F5),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _addFile();
+                  },
+                ),
               ),
-              _buildAddContentButton(
-                icon: Icons.link,
-                label: 'إضافة رابط',
-                color: const Color(0xFF2F62FF),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addLink();
-                },
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildAddContentButton(
+                  icon: Icons.link,
+                  label: 'إضافة رابط',
+                  color: const Color(0xFF2F62FF),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _addLink();
+                  },
+                ),
               ),
             ],
           ),
