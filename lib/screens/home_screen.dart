@@ -10,7 +10,7 @@ import 'lectures_screen.dart';
 import 'home_screen_logic.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();

@@ -3,7 +3,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:school_platform/models/folder.dart';
-import 'package:school_platform/models/user.dart';
 import 'package:school_platform/providers/user_provider.dart';
 import 'package:school_platform/services/mysql_data_service.dart';
 
