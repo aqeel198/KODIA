@@ -1,10 +1,10 @@
-// FolderContentsScreen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+
 import '../models/folder.dart';
 import '../models/file_record.dart';
 import '../models/link_record.dart';
@@ -29,6 +29,17 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context).user;
+    // التأكد من أن بيانات المجلد مكتملة
+    if (widget.folder.id == null) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            "بيانات المجلد غير مكتملة",
+            style: GoogleFonts.cairo(fontSize: 18, color: Colors.red),
+          ),
+        ),
+      );
+    }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -65,7 +76,9 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
         ),
       ),
       actions: [
-        if (user != null && user.role.toLowerCase() == 'admin')
+        if (user != null &&
+            (user.role.toLowerCase() == 'admin' ||
+                user.role.toLowerCase() == 'teacher'))
           PopupMenuButton<String>(
             onSelected: (value) async {
               if (value == 'file') {
@@ -78,11 +91,17 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
                 (BuildContext context) => <PopupMenuEntry<String>>[
                   PopupMenuItem<String>(
                     value: 'file',
-                    child: Text('إضافة ملف', style: GoogleFonts.cairo()),
+                    child: Text(
+                      'إضافة ملف',
+                      style: GoogleFonts.cairo(color: Colors.black),
+                    ),
                   ),
                   PopupMenuItem<String>(
                     value: 'link',
-                    child: Text('إضافة رابط', style: GoogleFonts.cairo()),
+                    child: Text(
+                      'إضافة رابط',
+                      style: GoogleFonts.cairo(color: Colors.black),
+                    ),
                   ),
                 ],
             icon: const Icon(Icons.add, color: Colors.white),
@@ -112,21 +131,29 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   }
 
   Widget _buildFloatingActionButton(User? user) {
-    return user != null && user.role.toLowerCase() == 'admin'
-        ? FloatingActionButton(
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              builder: (context) => _buildAddContentSheet(),
-            );
-          },
-          backgroundColor: const Color(0xFF2F62FF),
-          child: const Icon(Icons.add, color: Colors.white),
-        )
-        : Container();
+    if (user != null &&
+        (user.role.toLowerCase() == 'admin' ||
+            user.role.toLowerCase() == 'teacher')) {
+      return FloatingActionButton.extended(
+        tooltip: 'إضافة محتوى',
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (context) => _buildAddContentSheet(),
+          );
+        },
+        backgroundColor: const Color(0xFF2F62FF),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: Text(
+          'إضافة محتوى',
+          style: GoogleFonts.cairo(color: Colors.white),
+        ),
+      );
+    }
+    return Container();
   }
 
   Widget _buildSectionHeader(String title) {
@@ -144,20 +171,30 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   }
 
   Widget _buildFilesFuture(User? user) {
+    if (user == null) {
+      return _buildEmptyWidget("لا توجد ملفات");
+    }
+    // التأكد من عدم كون id المجلد null
+    if (widget.folder.id == null) {
+      return _buildErrorWidget("بيانات المجلد غير مكتملة");
+    }
     return FutureBuilder<List<FileRecord>>(
-      future:
-          user != null
-              ? MySQLDataService.instance.getFilesByFolder(
-                widget.folder.id!,
-                user.schoolId,
-              )
-              : Future.value([]),
+      future: () async {
+        try {
+          return await MySQLDataService.instance.getFilesByFolder(
+            widget.folder.id!,
+            user.schoolId,
+          );
+        } catch (e) {
+          throw Exception("حدث خطأ أثناء جلب الملفات: $e");
+        }
+      }(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _buildErrorWidget('خطأ في جلب الملفات: ${snapshot.error}');
+          return _buildErrorWidget(snapshot.error.toString());
         }
         final files = snapshot.data ?? [];
         return _buildFileList(files, user);
@@ -166,20 +203,29 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   }
 
   Widget _buildLinksFuture(User? user) {
+    if (user == null) {
+      return _buildEmptyWidget("لا توجد روابط");
+    }
+    if (widget.folder.id == null) {
+      return _buildErrorWidget("بيانات المجلد غير مكتملة");
+    }
     return FutureBuilder<List<LinkRecord>>(
-      future:
-          user != null
-              ? MySQLDataService.instance.getLinksByFolder(
-                widget.folder.id!,
-                user.schoolId,
-              )
-              : Future.value([]),
+      future: () async {
+        try {
+          return await MySQLDataService.instance.getLinksByFolder(
+            widget.folder.id!,
+            user.schoolId,
+          );
+        } catch (e) {
+          throw Exception("حدث خطأ أثناء جلب الروابط: $e");
+        }
+      }(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _buildErrorWidget('خطأ في جلب الروابط: ${snapshot.error}');
+          return _buildErrorWidget(snapshot.error.toString());
         }
         final links = snapshot.data ?? [];
         return _buildLinkList(links, user);
@@ -240,7 +286,10 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   }
 
   Widget _buildLinkCard(LinkRecord link, User? user) {
-    final bool isAdmin = (user != null && user.role.toLowerCase() == 'admin');
+    bool canEdit =
+        user != null &&
+        (user.role.toLowerCase() == 'admin' ||
+            user.role.toLowerCase() == 'teacher');
     final bool isYoutubeLink =
         link.url.contains('youtube.com') || link.url.contains('youtu.be');
 
@@ -275,8 +324,8 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
                         fontSize: 16,
                       ),
                     ),
-                    if (isAdmin) const SizedBox(height: 4),
-                    if (isAdmin)
+                    if (canEdit) const SizedBox(height: 4),
+                    if (canEdit)
                       Text(
                         _truncateUrl(link.url),
                         style: GoogleFonts.cairo(
@@ -287,7 +336,7 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
                   ],
                 ),
               ),
-              if (isAdmin) ...[
+              if (canEdit) ...[
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.blue),
                   onPressed: () => _updateLink(link),
@@ -354,26 +403,35 @@ class _FolderContentsScreenState extends State<FolderContentsScreen> {
   }
 
   Future<void> _openLink(String url) async {
-    if (!url.startsWith('http')) {
-      url = 'https://$url';
-    }
-    if (url.contains('youtube.com') || url.contains('youtu.be')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => YoutubePlayerScreen(videoUrl: url),
-        ),
-      );
-    } else {
-      if (await canLaunchUrl(Uri.parse(url))) {
-        await launchUrl(Uri.parse(url));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('لا يمكن فتح الرابط', style: GoogleFonts.cairo()),
+    try {
+      if (!url.startsWith('http')) {
+        url = 'https://$url';
+      }
+      if (url.contains('youtube.com') || url.contains('youtu.be')) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => YoutubePlayerScreen(videoUrl: url),
           ),
         );
+      } else {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        } else {
+          throw Exception("لا يمكن فتح الرابط");
+        }
       }
+    } catch (e) {
+      print("خطأ عند فتح الرابط: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'حدث خطأ أثناء فتح الرابط.',
+            style: GoogleFonts.cairo(),
+          ),
+        ),
+      );
     }
   }
 

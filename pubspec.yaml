@@ -34,6 +34,7 @@ dependencies:
   flutter_staggered_animations: ^1.1.1
   flutter_animate: ^4.5.2
   google_fonts: 4.0.4
+  lottie: ^2.2.0
 
 
 

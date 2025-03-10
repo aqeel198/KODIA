@@ -13,9 +13,9 @@ header('Content-Type: text/html; charset=UTF-8');
 // بيانات الاتصال بقاعدة البيانات
 $servername = "sxb1plzcpnl508429.prod.sxb1.secureserver.net";
 $port       = 3306;
-$username   = "admin";          // اسم المستخدم
-$password   = "ASDdsaWSS22";    // كلمة المرور
-$dbname     = "almnsaDB";       // اسم قاعدة البيانات
+$username   = "habboush";          // اسم المستخدم
+$password   = "ASDdsaWSS22";       // كلمة المرور
+$dbname     = "SchoolDB";          // اسم قاعدة البيانات
 
 // إنشاء الاتصال بقاعدة البيانات
 $conn = new mysqli($servername, $username, $password, $dbname, $port);
@@ -78,8 +78,9 @@ if ($action === 'upload') {
             // توليد اسم فريد لتفادي التعارض
             $uniqueName = uniqid("pdf_", true) . "." . $fileExt;
 
-            // تحديد المجلد باستخدام $_SERVER['DOCUMENT_ROOT']
-            $targetDir = $_SERVER['DOCUMENT_ROOT'] . "/almnsafile";
+            // تحديد المجلد باستخدام $_SERVER['DOCUMENT_ROOT'] 
+            // وتغييره إلى schoolfile
+            $targetDir = $_SERVER['DOCUMENT_ROOT'] . "/schoolfile";
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0775, true);
             }
@@ -98,7 +99,8 @@ if ($action === 'upload') {
                 echo "Debug: fileName = $providedFileName, folderId = $folderId, userId = $userId, schoolId = $schoolId<br>";
 
                 // تحديد المسار النصي (نسبي) لتخزينه في قاعدة البيانات
-                $filePathDB = "almnsafile/" . $uniqueName;
+                // الآن أصبح في مجلد schoolfile
+                $filePathDB = "schoolfile/" . $uniqueName;
 
                 // إدخال البيانات في جدول files (بما في ذلك schoolId)
                 $stmt = $conn->prepare("

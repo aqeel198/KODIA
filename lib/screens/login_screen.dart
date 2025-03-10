@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen>
       try {
         setState(() => _loading = true);
 
-        // تسجيل الدخول ببيانات التخزين الآمن
+        // تسجيل الدخول باستخدام بيانات التخزين الآمن
         User? user = await MySQLDataService.instance.loginUser(
           storedUsername,
           storedPassword,
@@ -144,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen>
             logoUrl: schoolDetails['logo_url'] ?? '',
           );
 
-          // وضع user في الـ Provider
           Provider.of<UserProvider>(context, listen: false).setUser(user);
 
           // إظهار إشعار نجاح
@@ -170,10 +169,9 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           );
 
-          // عرض حوار ترحيبي (سيغلق تلقائيًا بعد 2 ثانية)
+          // عرض حوار ترحيبي بتصميم عصري (يغلق تلقائيًا بعد 3 ثوان)
           await _showWelcomeDialog(user);
 
-          // بعد إغلاق الحوار، نذهب للشاشة الرئيسية
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/home');
           }
@@ -187,14 +185,12 @@ class _LoginScreenState extends State<LoginScreen>
           _showErrorSnackBar('حدث خطأ: $e');
         }
       } finally {
-        if (mounted) {
-          setState(() => _loading = false);
-        }
+        if (mounted) setState(() => _loading = false);
       }
     }
   }
 
-  /// حوار ترحيب يُغلق تلقائيًا بعد 2 ثوان
+  /// حوار ترحيب بتصميم عصري يُغلق تلقائيًا بعد 3 ثوان
   Future<void> _showWelcomeDialog(User user) async {
     final schoolLogo = user.logoUrl ?? "";
     final schoolName = user.schoolName ?? "";
@@ -204,51 +200,98 @@ class _LoginScreenState extends State<LoginScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        // إغلاقه تلقائيًا بعد 2 ثانية
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted && Navigator.canPop(ctx)) {
-            Navigator.pop(ctx); // إغلاق الـ Dialog
-          }
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted && Navigator.canPop(ctx)) Navigator.pop(ctx);
         });
 
-        return AlertDialog(
+        return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (schoolLogo.isNotEmpty)
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(schoolLogo),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                )
-              else
-                const Icon(Icons.school, size: 80, color: Colors.blueGrey),
-              const SizedBox(height: 16),
-              Text(
-                'مرحباً $userName',
-                style: GoogleFonts.cairo(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+          elevation: 10,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [Color(0xFF2E3192), Color(0xFF1BFFFF)],
               ),
-              const SizedBox(height: 8),
-              if (schoolName.isNotEmpty)
-                Text(
-                  'أهلاً بك في $schoolName',
-                  style: GoogleFonts.cairo(fontSize: 16, color: Colors.black54),
-                  textAlign: TextAlign.center,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 20,
+                  spreadRadius: 5,
                 ),
-            ],
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (schoolLogo.isNotEmpty)
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(schoolLogo),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ).animate().scale(duration: 500.ms)
+                else
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Icon(
+                      Icons.school,
+                      size: 60,
+                      color: Color(0xFF2E3192),
+                    ),
+                  ).animate().scale(duration: 500.ms),
+                const SizedBox(height: 20),
+                Text(
+                      'مرحباً $userName',
+                      style: GoogleFonts.cairo(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 600.ms)
+                    .slide(
+                      begin: Offset(0.0, 20.0),
+                      end: Offset.zero,
+                      duration: 600.ms,
+                    ),
+                const SizedBox(height: 10),
+                if (schoolName.isNotEmpty)
+                  Text(
+                        'أهلاً بك في $schoolName',
+                        style: GoogleFonts.cairo(
+                          fontSize: 18,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 200.ms)
+                      .slide(
+                        begin: Offset(0.0, 20.0),
+                        end: Offset.zero,
+                        duration: 600.ms,
+                      ),
+              ],
+            ),
           ),
         );
       },
@@ -332,7 +375,6 @@ class _LoginScreenState extends State<LoginScreen>
                           .fadeIn(duration: 600.ms)
                           .scale(delay: 200.ms, duration: 500.ms),
                       const SizedBox(height: 30),
-
                       // نص الترحيب
                       Text(
                             'مرحباً بك',
@@ -344,10 +386,9 @@ class _LoginScreenState extends State<LoginScreen>
                           )
                           .animate()
                           .fadeIn(duration: 600.ms, delay: 300.ms)
-                          .moveY(
-                            begin: 20,
-                            end: 0,
-                            delay: 300.ms,
+                          .slide(
+                            begin: Offset(0.0, 20.0),
+                            end: Offset.zero,
                             duration: 600.ms,
                           ),
                       Text(
@@ -358,7 +399,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ).animate().fadeIn(duration: 600.ms, delay: 400.ms),
                       const SizedBox(height: 40),
-
                       // بطاقة تسجيل الدخول
                       Container(
                             width:
@@ -395,7 +435,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
-
                                     // حقل كلمة المرور
                                     _buildInputLabel('كلمة المرور'),
                                     const SizedBox(height: 8),
@@ -425,7 +464,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
-
                                     // حقل رمز المدرسة
                                     _buildInputLabel('رمز المدرسة'),
                                     const SizedBox(height: 8),
@@ -440,7 +478,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 30),
-
                                     // زر تسجيل الدخول
                                     Center(
                                       child: ScaleTransition(
@@ -461,11 +498,11 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: const Color(
+                                                    color: Color(
                                                       0xFF2E3192,
                                                     ).withOpacity(0.3),
                                                     blurRadius: 12,
-                                                    offset: const Offset(0, 6),
+                                                    offset: Offset(0.0, 6.0),
                                                   ),
                                                 ],
                                               ),
@@ -552,9 +589,10 @@ class _LoginScreenState extends State<LoginScreen>
                           )
                           .animate()
                           .fadeIn(duration: 800.ms, delay: 500.ms)
-                          .moveY(
-                            begin: 30,
-                            end: 0,
+                          .slide(
+                            begin: Offset(0.0, 30.0),
+                            end: Offset.zero,
+                            duration: 800.ms,
                             delay: 500.ms,
                             curve: Curves.easeOutQuad,
                           ),
@@ -629,6 +667,6 @@ class _LoginScreenState extends State<LoginScreen>
         )
         .animate()
         .fadeIn(duration: 600.ms)
-        .moveX(begin: -10, end: 0, duration: 400.ms);
+        .slide(begin: Offset(-10.0, 0.0), end: Offset.zero, duration: 400.ms);
   }
 }

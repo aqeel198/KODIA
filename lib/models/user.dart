@@ -2,12 +2,11 @@ class User {
   final int? id;
   final String username;
   final String password;
-  final String role; // "admin" أو "user"
-  final String? grade; // المرحلة الدراسية (للطلاب)، يمكن أن تكون null للإدمن
-  final int schoolId; // معرف المدرسة
-  final String schoolCode; // رمز المدرسة
-
-  // الحقول الجديدة
+  final String role; // admin / user / teacher
+  final String? grade; // المرحلة الدراسية (للمستخدم العادي user)
+  final String? subject; // التخصص (للمدرس teacher)
+  final int schoolId;
+  final String schoolCode;
   final String? schoolName;
   final String? logoUrl;
 
@@ -17,13 +16,14 @@ class User {
     required this.password,
     required this.role,
     this.grade,
+    this.subject,
     required this.schoolId,
     this.schoolCode = "",
     this.schoolName,
     this.logoUrl,
   });
 
-  /// ينشئ كائن User من خريطة (Map)
+  /// إنشاء كائن User من خريطة (Map)
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: map['id'] as int?,
@@ -31,6 +31,7 @@ class User {
       password: map['password'] as String,
       role: map['role']?.toString() ?? '',
       grade: map['grade']?.toString(),
+      subject: map['subject']?.toString(),
       schoolId: map['schoolId'] as int,
       schoolCode: map['schoolCode'] as String? ?? '',
       schoolName: map['schoolName'] as String?,
@@ -38,26 +39,28 @@ class User {
     );
   }
 
-  /// يحول كائن User إلى خريطة (Map)
+  /// تحويل كائن User إلى خريطة
   Map<String, dynamic> toMap() => {
     'id': id,
     'username': username,
     'password': password,
     'role': role,
     'grade': grade,
+    'subject': subject,
     'schoolId': schoolId,
     'schoolCode': schoolCode,
     'schoolName': schoolName,
     'logoUrl': logoUrl,
   };
 
-  /// ينشئ نسخة جديدة من User مع التعديلات المطلوبة
+  /// إنشاء نسخة جديدة مع تعديلات
   User copyWith({
     int? id,
     String? username,
     String? password,
     String? role,
     String? grade,
+    String? subject,
     int? schoolId,
     String? schoolCode,
     String? schoolName,
@@ -69,6 +72,7 @@ class User {
       password: password ?? this.password,
       role: role ?? this.role,
       grade: grade ?? this.grade,
+      subject: subject ?? this.subject,
       schoolId: schoolId ?? this.schoolId,
       schoolCode: schoolCode ?? this.schoolCode,
       schoolName: schoolName ?? this.schoolName,

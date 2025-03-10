@@ -26,9 +26,9 @@ class MySQLDataService implements DataService {
       final settings = ConnectionSettings(
         host: 'sxb1plzcpnl508429.prod.sxb1.secureserver.net',
         port: 3306,
-        user: 'admin',
+        user: 'habboush',
         password: 'ASDdsaWSS22',
-        db: 'almnsaDB',
+        db: 'SchoolDB',
       );
 
       _connection = await MySqlConnection.connect(settings);
@@ -66,14 +66,14 @@ class MySQLDataService implements DataService {
   ) async {
     final conn = await connection;
     try {
-      // استعلام يجلب بيانات المستخدم مع تاريخ انتهاء الاشتراك الخاص بالمدرسة
+      // استعلام يجلب بيانات المستخدم مع تاريخ انتهاء الاشتراك من schools
       var results = await conn.query(
         '''
-        SELECT u.*, s.subscription_end 
-        FROM users u 
-        JOIN schools s ON u.schoolId = s.id 
-        WHERE u.username = ? 
-          AND u.password = ? 
+        SELECT u.*, s.subscription_end
+        FROM users u
+        JOIN schools s ON u.schoolId = s.id
+        WHERE u.username = ?
+          AND u.password = ?
           AND s.school_code = ?
         ''',
         [username, password, schoolCode],
@@ -90,7 +90,7 @@ class MySQLDataService implements DataService {
             row.fields['subscription_end'].toString(),
           );
         }
-        // التحقق من انتهاء الاشتراك: إذا كان تاريخ الاشتراك أقل من تاريخ اليوم، نرفع استثناء
+        // التحقق من انتهاء الاشتراك
         if (subscriptionEnd.isBefore(DateTime.now())) {
           throw Exception("اشتراك المنصة منتهي. يجب تجديد الاشتراك.");
         }
@@ -144,6 +144,9 @@ class MySQLDataService implements DataService {
     }
   }
 
+  // ----------------------------
+  //     إدارة المستخدمين
+  // ----------------------------
   @override
   Future<int> registerUser(User user) async {
     final conn = await connection;
@@ -152,7 +155,6 @@ class MySQLDataService implements DataService {
       'SELECT COUNT(*) AS count FROM users WHERE username = ? AND schoolId = ?',
       [user.username, user.schoolId],
     );
-    // تحويل القيمة إلى int بشكل موثوق
     int count = int.parse(results.first.fields['count'].toString());
     print("Debug: عدد المستخدمين بنفس الاسم لهذه المدرسة = $count");
     if (count > 0) {
@@ -160,9 +162,20 @@ class MySQLDataService implements DataService {
     }
 
     try {
+      // لاحظ تمت إضافة حقل subject:
       var result = await conn.query(
-        'INSERT INTO users (username, password, role, grade, schoolId) VALUES (?, ?, ?, ?, ?)',
-        [user.username, user.password, user.role, user.grade, user.schoolId],
+        '''
+        INSERT INTO users (username, password, role, grade, subject, schoolId)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ''',
+        [
+          user.username,
+          user.password,
+          user.role,
+          user.grade,
+          user.subject,
+          user.schoolId,
+        ],
       );
       return result.insertId!;
     } catch (e) {
@@ -190,12 +203,17 @@ class MySQLDataService implements DataService {
     final conn = await connection;
     try {
       var result = await conn.query(
-        'UPDATE users SET username = ?, password = ?, role = ?, grade = ? WHERE id = ? AND schoolId = ?',
+        '''
+        UPDATE users
+        SET username = ?, password = ?, role = ?, grade = ?, subject = ?
+        WHERE id = ? AND schoolId = ?
+        ''',
         [
           user.username,
           user.password,
           user.role,
           user.grade,
+          user.subject,
           user.id,
           user.schoolId,
         ],
@@ -440,7 +458,7 @@ class MySQLDataService implements DataService {
   }
 
   // ----------------------------
-  //         تجديد الاشتراك (من جانب السيرفر)
+  //         تجديد الاشتراك
   // ----------------------------
   Future<bool> renewSubscription(int schoolId, int days) async {
     final conn = await connection;
@@ -457,6 +475,23 @@ class MySQLDataService implements DataService {
     } catch (e) {
       print("❌ خطأ في renewSubscription: $e");
       return false;
+    }
+  }
+
+  /// دالة getTeacherSubjects لاسترجاع قائمة التخصصات الفريدة لمستخدمي نوع teacher بناءً على schoolId
+  Future<List<String>> getTeacherSubjects(int schoolId) async {
+    final conn = await connection;
+    try {
+      var results = await conn.query(
+        "SELECT DISTINCT subject FROM users WHERE role = 'teacher' AND schoolId = ? AND subject IS NOT NULL AND subject <> ''",
+        [schoolId],
+      );
+      return results
+          .map<String>((row) => row.fields['subject'] as String)
+          .toList();
+    } catch (e) {
+      print("❌ خطأ في getTeacherSubjects: $e");
+      rethrow;
     }
   }
 }

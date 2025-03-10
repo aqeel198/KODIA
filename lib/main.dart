@@ -6,6 +6,8 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/user_management_screen.dart';
 import 'screens/folder_upload_screen.dart';
+import 'screens/lectures_screen.dart'; // إضافة شاشة المحاضرات
+import 'screens/assignments_screen.dart'; // إضافة شاشة الواجبات
 import 'utils/theme.dart';
 
 void main() async {
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
     return Consumer<UserProvider>(
       builder: (context, userProvider, _) {
         return MaterialApp(
-          title: 'EduNi',
+          title: 'ITQAN-إتقان"',
           debugShowCheckedModeBanner: false,
           theme:
               userProvider.user != null
@@ -37,15 +39,16 @@ class MyApp extends StatelessWidget {
           routes: {
             '/splash': (context) => const SplashScreen(),
             '/login': (context) => const LoginScreen(),
-            '/home':
-                (context) =>
-                    const HomeScreen(), // يستقبل HomeScreen الـ arguments من LoginScreen
+            '/home': (context) => const HomeScreen(),
             '/userManagement': (context) => const UserManagementScreen(),
             '/folderUpload': (context) => const FolderUploadScreen(),
+            '/lectures':
+                (context) => const LecturesScreen(), // مسار شاشة المحاضرات
+            '/assignments':
+                (context) => const AssignmentsScreen(), // مسار شاشة الواجبات
           },
-          // onGenerateRoute يمكن استخدامه لالتقاط المسارات غير المعروفة إذا لزم الأمر
           onGenerateRoute: (settings) {
-            // مثال: يمكنك التحقق من settings.name وتمرير الـ arguments للصفحات حسب الحاجة
+            // يمكن هنا التقاط المسارات غير المعروفة وتمرير الـ arguments إذا لزم الأمر
             return null;
           },
         );

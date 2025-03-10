@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -172,7 +173,7 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
           'schoolId': widget.file.schoolId,
         });
         final response = await Dio().post(
-          'http://xcodeapps.shop/almnsa.php',
+          'http://xcodeapps.shop/itqan.php',
           data: formData,
         );
         print("Response: ${response.data}");
@@ -300,7 +301,10 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.user != null && widget.user.role == 'admin') ...[
+                // تعديل صلاحيات: يمنح حق التعديل والحذف لكل من الإدمن والمدرّس
+                if (widget.user != null &&
+                    (widget.user.role.toLowerCase() == 'admin' ||
+                        widget.user.role.toLowerCase() == 'teacher')) ...[
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.blue),
                     onPressed: _updateFile,

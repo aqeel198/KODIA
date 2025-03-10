@@ -13,9 +13,9 @@ header('Content-Type: application/json; charset=UTF-8');
 // بيانات الاتصال بقاعدة البيانات
 $servername = "sxb1plzcpnl508429.prod.sxb1.secureserver.net";
 $port       = 3306;
-$username   = "admin";
+$username   = "habboush";
 $password   = "ASDdsaWSS22";
-$dbname     = "almnsaDB";
+$dbname     = "SchoolDB";
 
 // إنشاء الاتصال بقاعدة البيانات
 $conn = new mysqli($servername, $username, $password, $dbname, $port);

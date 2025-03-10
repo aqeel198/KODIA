@@ -6,19 +6,16 @@ class UserProvider with ChangeNotifier {
   User? _user;
   User? get user => _user;
 
-  /// تحميل بيانات المستخدم المحفوظة من SharedPreferences
+  /// تحميل بيانات المستخدم من SharedPreferences
   Future<void> loadUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? role = prefs.getString('role');
     String? username = prefs.getString('username');
-    String? password = prefs.getString('password'); // إن وُجد
-    String? grade = prefs.getString('grade'); // إن وُجد
-    int? schoolId = prefs.getInt('schoolId'); // قيمة schoolId المحفوظة
-    String? schoolCode = prefs.getString(
-      'schoolCode',
-    ); // قيمة schoolCode المحفوظة
-
-    // الحقول الجديدة
+    String? password = prefs.getString('password');
+    String? grade = prefs.getString('grade');
+    String? subject = prefs.getString('subject'); // التخصص
+    int? schoolId = prefs.getInt('schoolId');
+    String? schoolCode = prefs.getString('schoolCode');
     String? schoolName = prefs.getString('schoolName');
     String? logoUrl = prefs.getString('logoUrl');
 
@@ -30,7 +27,8 @@ class UserProvider with ChangeNotifier {
         role: role,
         username: username,
         password: password ?? '',
-        grade: grade ?? '',
+        grade: grade,
+        subject: subject,
         schoolId: schoolId,
         schoolCode: schoolCode,
         schoolName: schoolName,
@@ -45,41 +43,39 @@ class UserProvider with ChangeNotifier {
     required String username,
     required String role,
     required String password,
-    required String grade,
+    String? grade,
+    String? subject,
     required int schoolId,
     required String schoolCode,
-    String? schoolName, // معلمة schoolName الجديدة
-    String? logoUrl, // معلمة logoUrl الجديدة
+    String? schoolName,
+    String? logoUrl,
   }) async {
     _user = User(
       role: role,
       username: username,
       password: password,
       grade: grade,
+      subject: subject,
       schoolId: schoolId,
       schoolCode: schoolCode,
       schoolName: schoolName,
       logoUrl: logoUrl,
     );
     notifyListeners();
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('role', role);
     await prefs.setString('username', username);
     await prefs.setString('password', password);
-    await prefs.setString('grade', grade);
+    if (grade != null) await prefs.setString('grade', grade);
+    if (subject != null) await prefs.setString('subject', subject);
     await prefs.setInt('schoolId', schoolId);
     await prefs.setString('schoolCode', schoolCode);
-
-    // حفظ الحقول الجديدة إن وُجدت
-    if (schoolName != null) {
-      await prefs.setString('schoolName', schoolName);
-    }
-    if (logoUrl != null) {
-      await prefs.setString('logoUrl', logoUrl);
-    }
+    if (schoolName != null) prefs.setString('schoolName', schoolName);
+    if (logoUrl != null) prefs.setString('logoUrl', logoUrl);
   }
 
-  /// تسجيل الخروج ومسح بيانات المستخدم
+  /// تسجيل الخروج
   Future<void> logout() async {
     _user = null;
     notifyListeners();
@@ -88,21 +84,18 @@ class UserProvider with ChangeNotifier {
     await prefs.remove('username');
     await prefs.remove('password');
     await prefs.remove('grade');
+    await prefs.remove('subject');
     await prefs.remove('schoolId');
     await prefs.remove('schoolCode');
-
-    // إزالة الحقول الجديدة
     await prefs.remove('schoolName');
     await prefs.remove('logoUrl');
   }
 
-  /// تعيين المستخدم مباشرةً (مثلاً من نتيجة تسجيل دخول خارجي)
   void setUser(User? newUser) {
     _user = newUser;
     notifyListeners();
   }
 
-  /// مسح بيانات المستخدم
   void clearUser() {
     _user = null;
     notifyListeners();

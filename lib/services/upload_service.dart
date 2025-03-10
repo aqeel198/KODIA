@@ -9,7 +9,7 @@ class UploadService {
     required int userId,
     required int schoolId,
   }) async {
-    final uri = Uri.parse("http://xcodeapps.shop/almnsa.php");
+    final uri = Uri.parse("http://xcodeapps.shop/itqan.php");
     var request = http.MultipartRequest('POST', uri);
 
     // إضافة الملف
