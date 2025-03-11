@@ -49,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen>
       decoration: const BoxDecoration(color: Colors.white),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 24.0), // حشوة سفلية
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -240,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen>
           'title': 'التقارير',
           'subtitle': 'إحصائيات وتقارير المدرسة',
           'icon': Icons.bar_chart_rounded,
-          'color': const Color(0xFF9C27B0),
+          'color': const Color(0xFFAB47BC),
           'onTap': () {
             Navigator.push(
               context,
@@ -252,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen>
           'title': 'إدارة المستخدمين',
           'subtitle': 'إضافة وتعديل حسابات المستخدمين',
           'icon': Icons.people_alt_rounded,
-          'color': const Color(0xFFFF9800),
+          'color': const Color(0xFFFFA726),
           'onTap': () {
             Navigator.pushNamed(context, "/userManagement");
           },
@@ -270,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen>
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
+          // جرّب تعديل النسبة إن أردت تكبير أو تصغير البطاقات
           childAspectRatio: 0.85,
         ),
         itemBuilder: (context, index) {
@@ -284,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen>
             builder: (context, child) {
               return Transform.translate(
                 offset: Offset(0, 30 * (1 - animationValue)),
-                child: Opacity(opacity: animationValue, child: child),
+                child: Opacity(opacity: 1, child: child),
               );
             },
             child: GestureDetector(
@@ -295,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: item['color'].withOpacity(0.15),
+                      color: item['color'].withOpacity(0.5),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -308,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen>
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: item['color'].withOpacity(0.1),
+                        color: item['color'].withOpacity(0.25),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(item['icon'], size: 32, color: item['color']),
@@ -482,8 +484,8 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           TextButton(
             onPressed: () {
-              // يمكن إضافة إجراء هنا للتجديد
-              _showFeatureNotAvailableDialog();
+              // استدعاء دالة التجديد التي تعرض الرقم
+              _showRenewDialog();
             },
             style: TextButton.styleFrom(
               backgroundColor: const Color(0xFFFF9800),
@@ -506,8 +508,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// عرض تنبيه الميزة غير متوفرة
-  void _showFeatureNotAvailableDialog() {
+  /// دالة عرض رسالة التجديد مع الرقم
+  void _showRenewDialog() {
     showDialog(
       context: context,
       builder: (ctx) {
@@ -534,19 +536,21 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "تنبيه",
+                  "يرجى التواصل عبر الرقم التالي",
                   style: GoogleFonts.cairo(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF333333),
+                    color: Color(0xFF333333),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'هذه الميزة غير متوفرة لديك حالياً',
-                  style: GoogleFonts.cairo(
-                    fontSize: 16,
-                    color: Colors.grey[600],
+                  '07715935012',
+                  style: TextStyle(
+                    letterSpacing: 1.5,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 255, 102, 0),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -557,6 +561,71 @@ class _HomeScreenState extends State<HomeScreen>
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2F62FF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      "موافق",
+                      style: GoogleFonts.cairo(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// دالة عرض رسالة الميزة غير المتوفرة
+  void _showFeatureNotAvailableDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.grey,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "هذه الميزة غير متوفرة لديك",
+                  style: GoogleFonts.cairo(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -595,12 +664,15 @@ class _HomeScreenState extends State<HomeScreen>
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _buildAppBar(user),
-        body: FutureBuilder<int?>(
-          future: _logic.fetchDaysLeftForSubscription(context),
-          builder: (context, snapshot) {
-            final daysLeft = snapshot.data;
-            return _buildBodyWithSubscriptionText(user, daysLeft);
-          },
+        body: SafeArea(
+          // <-- أضفنا SafeArea هنا
+          child: FutureBuilder<int?>(
+            future: _logic.fetchDaysLeftForSubscription(context),
+            builder: (context, snapshot) {
+              final daysLeft = snapshot.data;
+              return _buildBodyWithSubscriptionText(user, daysLeft);
+            },
+          ),
         ),
       ),
     );

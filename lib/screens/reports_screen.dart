@@ -808,6 +808,7 @@ class _ReportsScreenState extends State<ReportsScreen>
           'التقارير والإحصائيات',
           style: GoogleFonts.cairo(
             fontSize: isSmallScreen ? 16 : 20,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             shadows: [
               Shadow(

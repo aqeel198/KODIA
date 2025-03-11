@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -156,7 +158,13 @@ class _LecturesScreenState extends State<LecturesScreen>
                       gradeOptions.map((grade) {
                         return DropdownMenuItem<String>(
                           value: grade,
-                          child: Text(grade, style: GoogleFonts.cairo()),
+                          child: Text(
+                            grade,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontFamily: 'Cairo-Bold.ttf',
+                            ),
+                          ),
                         );
                       }).toList(),
                   onChanged: (value) {

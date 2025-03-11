@@ -30,8 +30,12 @@ class _LoginScreenState extends State<LoginScreen>
   Animation<double>? _scaleAnimation;
   Animation<double>? _opacityAnimation;
 
-  // استخدام flutter_secure_storage لتخزين البيانات الحساسة
+  // إنشاء كائن secureStorage لتخزين البيانات الحساسة بشكل مشفر
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+  // عداد المحاولات المتتالية وفترة الحظر
+  int _failedAttempts = 0;
+  DateTime? _lockoutEndTime;
 
   @override
   void initState() {
@@ -62,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  /// التحقق من بيانات التسجيل المخزنة
+  /// التحقق من بيانات التسجيل المخزنة باستخدام secureStorage
   Future<void> _checkLoginStatus() async {
     String? storedUsername = await secureStorage.read(key: 'username');
     String? storedPassword = await secureStorage.read(key: 'password');
@@ -74,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen>
       try {
         setState(() => _loading = true);
 
-        // تسجيل الدخول باستخدام بيانات التخزين الآمن
+        // محاولة تسجيل الدخول باستخدام البيانات المخزنة بشكل آمن
         User? user = await MySQLDataService.instance.loginUser(
           storedUsername,
           storedPassword,
@@ -105,13 +109,26 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// تسجيل الدخول اليدوي
+  /// تسجيل الدخول اليدوي مع آلية حظر متدرجة
   Future<void> _login() async {
+    // فحص فترة الحظر قبل محاولة تسجيل الدخول
+    if (_lockoutEndTime != null) {
+      if (DateTime.now().isBefore(_lockoutEndTime!)) {
+        final remaining = _lockoutEndTime!.difference(DateTime.now());
+        _showErrorSnackBar(
+          "المستخدم محظور، يرجى الانتظار ${remaining.inSeconds} ثانية.",
+        );
+        return;
+      } else {
+        _lockoutEndTime = null;
+      }
+    }
+
     if (_formKey.currentState!.validate()) {
       setState(() => _loading = true);
 
       try {
-        // تسجيل الدخول من قاعدة البيانات
+        // محاولة تسجيل الدخول من قاعدة البيانات
         User? user = await MySQLDataService.instance.loginUser(
           _usernameController.text.trim(),
           _passwordController.text.trim(),
@@ -119,7 +136,11 @@ class _LoginScreenState extends State<LoginScreen>
         );
 
         if (user != null) {
-          // حفظ بيانات الدخول
+          // نجاح تسجيل الدخول: إعادة ضبط المحاولات وفترة الحظر
+          _failedAttempts = 0;
+          _lockoutEndTime = null;
+
+          // تخزين بيانات تسجيل الدخول باستخدام secureStorage
           await secureStorage.write(
             key: 'username',
             value: _usernameController.text.trim(),
@@ -138,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen>
             _schoolCodeController.text.trim(),
           );
 
-          // إضافة اسم المدرسة وشعارها إلى user
+          // تحديث كائن المستخدم بإضافة اسم المدرسة وشعارها
           user = user.copyWith(
             schoolName: schoolDetails['name'] ?? '',
             logoUrl: schoolDetails['logo_url'] ?? '',
@@ -146,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen>
 
           Provider.of<UserProvider>(context, listen: false).setUser(user);
 
-          // إظهار إشعار نجاح
+          // إشعار النجاح
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -169,20 +190,61 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           );
 
-          // عرض حوار ترحيبي بتصميم عصري (يغلق تلقائيًا بعد 3 ثوان)
+          // عرض حوار ترحيبي يُغلق تلقائيًا بعد 3 ثوان
           await _showWelcomeDialog(user);
 
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/home');
           }
         } else {
-          _showErrorSnackBar('بيانات غير صحيحة أو رمز مدرسة غير صحيح');
+          // فشل تسجيل الدخول: زيادة عداد المحاولات وتحديد مدة الحظر
+          _failedAttempts++;
+          if (_failedAttempts < 3) {
+            _showErrorSnackBar('بيانات الدخول خاطئة');
+          } else {
+            int blockSeconds = 0;
+            if (_failedAttempts == 3) {
+              blockSeconds = 30;
+            } else if (_failedAttempts == 4) {
+              blockSeconds = 120;
+            } else if (_failedAttempts == 5) {
+              blockSeconds = 300;
+            } else {
+              blockSeconds = 300 + ((_failedAttempts - 5) * 300);
+            }
+            _lockoutEndTime = DateTime.now().add(
+              Duration(seconds: blockSeconds),
+            );
+            _showErrorSnackBar(
+              "بيانات الدخول خاطئة. يرجى الانتظار لمدة $blockSeconds ثانية قبل المحاولة مرة أخرى.",
+            );
+          }
         }
       } catch (e) {
+        _failedAttempts++;
         if (e.toString().contains("اشتراك المنصة منتهي")) {
           _showErrorSnackBar('اشتراك المنصة منتهي. يجب تجديد الاشتراك.');
         } else {
-          _showErrorSnackBar('حدث خطأ: $e');
+          if (_failedAttempts < 3) {
+            _showErrorSnackBar("حدث خطأ أثناء تسجيل الدخول");
+          } else {
+            int blockSeconds = 0;
+            if (_failedAttempts == 3) {
+              blockSeconds = 30;
+            } else if (_failedAttempts == 4) {
+              blockSeconds = 120;
+            } else if (_failedAttempts == 5) {
+              blockSeconds = 300;
+            } else {
+              blockSeconds = 300 + ((_failedAttempts - 5) * 300);
+            }
+            _lockoutEndTime = DateTime.now().add(
+              Duration(seconds: blockSeconds),
+            );
+            _showErrorSnackBar(
+              "حدث خطأ أثناء تسجيل الدخول. يرجى الانتظار لمدة $blockSeconds ثانية قبل المحاولة مرة أخرى.",
+            );
+          }
         }
       } finally {
         if (mounted) setState(() => _loading = false);
@@ -190,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// حوار ترحيب بتصميم عصري يُغلق تلقائيًا بعد 3 ثوان
+  /// حوار ترحيبي يُغلق تلقائيًا بعد 3 ثوان
   Future<void> _showWelcomeDialog(User user) async {
     final schoolLogo = user.logoUrl ?? "";
     final schoolName = user.schoolName ?? "";
@@ -268,7 +330,7 @@ class _LoginScreenState extends State<LoginScreen>
                     .animate()
                     .fadeIn(duration: 600.ms)
                     .slide(
-                      begin: Offset(0.0, 20.0),
+                      begin: const Offset(0.0, 20.0),
                       end: Offset.zero,
                       duration: 600.ms,
                     ),
@@ -286,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen>
                       .animate()
                       .fadeIn(duration: 600.ms, delay: 200.ms)
                       .slide(
-                        begin: Offset(0.0, 20.0),
+                        begin: const Offset(0.0, 20.0),
                         end: Offset.zero,
                         duration: 600.ms,
                       ),
@@ -387,7 +449,7 @@ class _LoginScreenState extends State<LoginScreen>
                           .animate()
                           .fadeIn(duration: 600.ms, delay: 300.ms)
                           .slide(
-                            begin: Offset(0.0, 20.0),
+                            begin: const Offset(0.0, 20.0),
                             end: Offset.zero,
                             duration: 600.ms,
                           ),
@@ -421,7 +483,6 @@ class _LoginScreenState extends State<LoginScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // حقل اسم المستخدم
                                     _buildInputLabel('اسم المستخدم'),
                                     const SizedBox(height: 8),
                                     _buildTextField(
@@ -435,7 +496,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
-                                    // حقل كلمة المرور
                                     _buildInputLabel('كلمة المرور'),
                                     const SizedBox(height: 8),
                                     _buildTextField(
@@ -464,7 +524,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
-                                    // حقل رمز المدرسة
                                     _buildInputLabel('رمز المدرسة'),
                                     const SizedBox(height: 8),
                                     _buildTextField(
@@ -498,11 +557,14 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Color(
+                                                    color: const Color(
                                                       0xFF2E3192,
                                                     ).withOpacity(0.3),
                                                     blurRadius: 12,
-                                                    offset: Offset(0.0, 6.0),
+                                                    offset: const Offset(
+                                                      0.0,
+                                                      6.0,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -590,7 +652,7 @@ class _LoginScreenState extends State<LoginScreen>
                           .animate()
                           .fadeIn(duration: 800.ms, delay: 500.ms)
                           .slide(
-                            begin: Offset(0.0, 30.0),
+                            begin: const Offset(0.0, 30.0),
                             end: Offset.zero,
                             duration: 800.ms,
                             delay: 500.ms,
@@ -667,6 +729,10 @@ class _LoginScreenState extends State<LoginScreen>
         )
         .animate()
         .fadeIn(duration: 600.ms)
-        .slide(begin: Offset(-10.0, 0.0), end: Offset.zero, duration: 400.ms);
+        .slide(
+          begin: const Offset(-10.0, 0.0),
+          end: Offset.zero,
+          duration: 400.ms,
+        );
   }
 }
