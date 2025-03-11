@@ -10,7 +10,6 @@ import 'screens/folder_upload_screen.dart';
 import 'screens/lectures_screen.dart'; // شاشة المحاضرات
 import 'screens/assignments_screen.dart'; // شاشة الواجبات
 import 'utils/theme.dart';
-import 'services/secure_storage_service.dart';
 import 'dart:io';
 
 Future<void> main() async {
@@ -18,12 +17,11 @@ Future<void> main() async {
   print("Current Directory: ${Directory.current.path}");
 
   // تحميل متغيرات البيئة من ملف .env الموجود في جذر المشروع
-  await dotenv.load(fileName: "assets/env/.env");
+  await dotenv.load(fileName: '.env');
 
   // تنفيذ هذا الكود لمرة واحدة لتخزين كلمة مرور قاعدة البيانات بأمان
   // يُفضل تنفيذه أثناء مرحلة التطوير أو في شاشة إعدادات خاصة بالأدمن،
   // وبعد التأكد من تخزين البيانات، قم بإزالة هذا السطر.
-  await SecureStorageService.write('DB_PASSWORD', 'ASDdsaWSS22');
 
   // إنشاء مزود المستخدم وتحميل بيانات المستخدم المُحفوظة إن وُجدت
   final userProvider = UserProvider();

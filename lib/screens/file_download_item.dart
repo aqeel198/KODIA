@@ -1,19 +1,21 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../models/file_record.dart';
 import '../services/mysql_data_service.dart';
+import '../services/secure_storage_service.dart';
 
 class FileDownloadItem extends StatefulWidget {
   final FileRecord file;
   final dynamic user; // تأكد من توافق نوع الـ user حسب تعريفك
   /// callback لإعلام الشاشة الرئيسية بحدوث تعديل (مثلاً بعد حذف أو تعديل الملف)
   final VoidCallback? onFileUpdated;
+
   const FileDownloadItem({
     super.key,
     required this.file,
@@ -34,6 +36,21 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
   void dispose() {
     _cancelToken?.cancel("Widget disposed");
     super.dispose();
+  }
+
+  /// استرجاع رابط الأساس (Base URL) الخاص بالملفات من التخزين الآمن أو من ملف .env
+  Future<String> _getFileBaseUrl() async {
+    // حاول القراءة من التخزين الآمن:
+    final storedUrl = await SecureStorageService.read('FILE_BASE_URL');
+    // إذا لم يكن موجودًا في التخزين الآمن، استخدم متغير البيئة:
+    return storedUrl ??
+        (dotenv.env['FILE_BASE_URL'] ?? 'http://xcodeapps.shop');
+  }
+
+  /// استرجاع رابط الأساس (Base URL) الخاص بالعمليات PHP من التخزين الآمن أو من ملف .env
+  Future<String> _getPhpBaseUrl() async {
+    final storedUrl = await SecureStorageService.read('PHP_BASE_URL');
+    return storedUrl ?? (dotenv.env['PHP_BASE_URL'] ?? 'http://xcodeapps.shop');
   }
 
   /// بناء المسار المحلي للملف داخل Documents
@@ -61,16 +78,20 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
       return;
     }
 
+    final fileBaseUrl = await _getFileBaseUrl();
     // تضمين schoolId كمعامل في رابط التنزيل
     final fullUrl =
-        "http://xcodeapps.shop/${widget.file.filePath}?schoolId=${widget.file.schoolId}";
+        "$fileBaseUrl/${widget.file.filePath}?schoolId=${widget.file.schoolId}";
+
     if (mounted) {
       setState(() {
         _downloading = true;
         _progress = 0.0;
       });
     }
+
     _cancelToken = CancelToken();
+
     try {
       Dio dio = Dio();
       await dio.download(
@@ -163,8 +184,10 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
         );
       },
     );
+
     if (confirm) {
       try {
+        final phpBaseUrl = await _getPhpBaseUrl();
         // إضافة schoolId في بيانات الحذف
         FormData formData = FormData.fromMap({
           'action': 'delete',
@@ -172,10 +195,12 @@ class _FileDownloadItemState extends State<FileDownloadItem> {
           'filePath': widget.file.filePath,
           'schoolId': widget.file.schoolId,
         });
+
         final response = await Dio().post(
-          'http://xcodeapps.shop/itqan.php',
+          '$phpBaseUrl/itqan.php', // أو أي سكربت PHP آخر
           data: formData,
         );
+
         print("Response: ${response.data}");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
