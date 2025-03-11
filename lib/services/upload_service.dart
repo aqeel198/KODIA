@@ -1,7 +1,23 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'secure_storage_service.dart';
 
 class UploadService {
-  /// ترفع ملف PDF إلى سكربت upload.php على الخادم.
+  /// يسترجع عنوان URL للرفع من التخزين الآمن، وإذا لم يوجد يستخدم متغيرات البيئة أو القيمة الافتراضية.
+  static Future<String> _getUploadUrl() async {
+    final storedUrl = await SecureStorageService.read('UPLOAD_URL');
+    return storedUrl ??
+        (dotenv.env['UPLOAD_URL'] ?? "http://xcodeapps.shop/itqan.php");
+  }
+
+  /// يسترجع عنوان URL للاستبدال من التخزين الآمن، وإذا لم يوجد يستخدم متغيرات البيئة أو القيمة الافتراضية.
+  static Future<String> _getReplaceUrl() async {
+    final storedUrl = await SecureStorageService.read('REPLACE_URL');
+    return storedUrl ??
+        (dotenv.env['REPLACE_URL'] ?? "http://xcodeapps.shop/replace.php");
+  }
+
+  /// ترفع ملف PDF إلى سكربت الرفع على الخادم.
   static Future<void> uploadPdfFile({
     required String filePath,
     required String fileName,
@@ -9,7 +25,8 @@ class UploadService {
     required int userId,
     required int schoolId,
   }) async {
-    final uri = Uri.parse("http://xcodeapps.shop/itqan.php");
+    final uploadUrl = await _getUploadUrl();
+    final uri = Uri.parse(uploadUrl);
     var request = http.MultipartRequest('POST', uri);
 
     // إضافة الملف
@@ -32,7 +49,7 @@ class UploadService {
     }
   }
 
-  /// يستبدل ملف PDF موجود برفع ملف جديد وحذف الملف السابق عبر سكربت replace.php.
+  /// يستبدل ملف PDF موجود برفع ملف جديد وحذف الملف السابق عبر سكربت الاستبدال.
   static Future<void> replacePdfFile({
     required String filePath,
     required String fileName,
@@ -40,7 +57,8 @@ class UploadService {
     required int userId,
     required int schoolId,
   }) async {
-    final uri = Uri.parse("http://xcodeapps.shop/replace.php");
+    final replaceUrl = await _getReplaceUrl();
+    final uri = Uri.parse(replaceUrl);
     var request = http.MultipartRequest('POST', uri);
 
     // إضافة الملف الجديد

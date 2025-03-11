@@ -1,4 +1,6 @@
 import 'package:mysql1/mysql1.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'secure_storage_service.dart';
 import 'data_service.dart';
 import '../models/user.dart';
 import '../models/folder.dart';
@@ -11,34 +13,36 @@ class MySQLDataService implements DataService {
 
   MySQLDataService._init();
 
-  /// إنشاء اتصال بقاعدة البيانات (أو إعادة استخدامه إن كان موجودًا وصالحًا)
   Future<MySqlConnection> get connection async {
     if (_connection != null) {
       try {
         await _connection!.query("SELECT 1");
         return _connection!;
-      } catch (e) {
-        print("⚠️ الاتصال غير صالح أو مغلق، سيتم إعادة الاتصال: $e");
+      } catch (_) {
         await closeConnection();
       }
     }
+
     try {
+      final dbPassword = await SecureStorageService.read('DB_PASSWORD');
+      if (dbPassword == null) {
+        throw Exception("لا توجد كلمة مرور مخزنة.");
+      }
+
       final settings = ConnectionSettings(
-        host: 'sxb1plzcpnl508429.prod.sxb1.secureserver.net',
-        port: 3306,
-        user: 'habboush',
-        password: 'ASDdsaWSS22',
-        db: 'SchoolDB',
+        host: dotenv.env['DB_HOST']!,
+        port: int.parse(dotenv.env['DB_PORT']!),
+        user: dotenv.env['DB_USER']!,
+        password: dbPassword,
+        db: dotenv.env['DB_NAME']!,
       );
 
       _connection = await MySqlConnection.connect(settings);
-      print("✅ تم الاتصال بقاعدة البيانات بنجاح!");
-
-      // ضبط الترميز لضمان تخزين النصوص العربية بشكل صحيح
       await _connection!.query("SET NAMES 'utf8mb4'");
       await _connection!.query("SET CHARACTER SET utf8mb4");
       await _connection!.query("SET character_set_connection=utf8mb4");
 
+      print("✅ تم الاتصال بقاعدة البيانات بنجاح.");
       return _connection!;
     } catch (e) {
       print("❌ فشل الاتصال بقاعدة البيانات: $e");
@@ -46,7 +50,6 @@ class MySQLDataService implements DataService {
     }
   }
 
-  /// إغلاق الاتصال عند الحاجة
   Future<void> closeConnection() async {
     if (_connection != null) {
       await _connection!.close();

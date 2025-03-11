@@ -5,30 +5,32 @@
  * يقوم برفع الملف إلى السيرفر وتخزين بياناته في قاعدة البيانات.
  *******************************************************/
 
-// تفعيل عرض الأخطاء في وضع التطوير
+// تفعيل عرض الأخطاء في وضع التطوير (يُنصح بتعطيلها في الإنتاج)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 header('Content-Type: text/html; charset=UTF-8');
 
-// بيانات الاتصال بقاعدة البيانات
-$servername = "sxb1plzcpnl508429.prod.sxb1.secureserver.net";
-$port       = 3306;
-$username   = "habboush";          // اسم المستخدم
-$password   = "ASDdsaWSS22";       // كلمة المرور
-$dbname     = "SchoolDB";          // اسم قاعدة البيانات
+// استرجاع بيانات الاتصال بقاعدة البيانات من متغيرات البيئة
+$servername = getenv('DB_HOST');
+$port       = getenv('DB_PORT') ? (int)getenv('DB_PORT') : 3306;
+$username   = getenv('DB_USER');
+$password   = getenv('DB_PASSWORD');
+$dbname     = getenv('DB_NAME');
+
+// التحقق من توفر بيانات الاتصال
+if (!$servername || !$username || !$password || !$dbname) {
+    die("بيانات الاتصال غير متوفرة. يرجى التأكد من إعداد متغيرات البيئة.");
+}
 
 // إنشاء الاتصال بقاعدة البيانات
 $conn = new mysqli($servername, $username, $password, $dbname, $port);
 if ($conn->connect_error) {
     die("فشل الاتصال بقاعدة البيانات: " . $conn->connect_error);
 }
-
-// ضبط الترميز بعد الاتصال
 $conn->set_charset("utf8mb4");
 
 // تحديد نوع العملية المطلوبة عبر متغير POST 'action'
 $action = isset($_POST['action']) ? $_POST['action'] : 'upload';
-
 echo "Debug: Action = " . $action . "<br>";
 
 if ($action === 'upload') {
@@ -78,14 +80,12 @@ if ($action === 'upload') {
             // توليد اسم فريد لتفادي التعارض
             $uniqueName = uniqid("pdf_", true) . "." . $fileExt;
 
-            // تحديد المجلد باستخدام $_SERVER['DOCUMENT_ROOT'] 
-            // وتغييره إلى schoolfile
+            // تحديد المجلد باستخدام $_SERVER['DOCUMENT_ROOT'] وتغييره إلى schoolfile
             $targetDir = $_SERVER['DOCUMENT_ROOT'] . "/schoolfile";
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0775, true);
             }
             $uploadPath = $targetDir . "/" . $uniqueName;
-
             echo "Debug: uploadPath = $uploadPath<br>";
 
             // محاولة نقل الملف من المسار المؤقت إلى المجلد المحدد
@@ -99,18 +99,13 @@ if ($action === 'upload') {
                 echo "Debug: fileName = $providedFileName, folderId = $folderId, userId = $userId, schoolId = $schoolId<br>";
 
                 // تحديد المسار النصي (نسبي) لتخزينه في قاعدة البيانات
-                // الآن أصبح في مجلد schoolfile
                 $filePathDB = "schoolfile/" . $uniqueName;
 
                 // إدخال البيانات في جدول files (بما في ذلك schoolId)
-                $stmt = $conn->prepare("
-                    INSERT INTO files (fileName, filePath, folderId, userId, schoolId) 
-                    VALUES (?, ?, ?, ?, ?)
-                ");
+                $stmt = $conn->prepare("INSERT INTO files (fileName, filePath, folderId, userId, schoolId) VALUES (?, ?, ?, ?, ?)");
                 if ($stmt === false) {
                     die("خطأ في التحضير: " . $conn->error);
                 }
-                // ملاحظة: 5 معاملات (ssiii)
                 $stmt->bind_param("ssiii", $providedFileName, $filePathDB, $folderId, $userId, $schoolId);
                 if ($stmt->execute()) {
                     echo "تم رفع الملف '$providedFileName' وتخزين بياناته بنجاح.";

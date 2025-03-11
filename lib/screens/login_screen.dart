@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen>
   Animation<double>? _scaleAnimation;
   Animation<double>? _opacityAnimation;
 
-  // إنشاء كائن secureStorage لتخزين البيانات الحساسة بشكل مشفر
+  // استخدام flutter_secure_storage لتخزين البيانات الحساسة
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
   // عداد المحاولات المتتالية وفترة الحظر
@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  /// التحقق من بيانات التسجيل المخزنة باستخدام secureStorage
+  /// التحقق من بيانات التسجيل المخزنة
   Future<void> _checkLoginStatus() async {
     String? storedUsername = await secureStorage.read(key: 'username');
     String? storedPassword = await secureStorage.read(key: 'password');
@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen>
       try {
         setState(() => _loading = true);
 
-        // محاولة تسجيل الدخول باستخدام البيانات المخزنة بشكل آمن
+        // تسجيل الدخول باستخدام بيانات التخزين الآمن
         User? user = await MySQLDataService.instance.loginUser(
           storedUsername,
           storedPassword,
@@ -109,9 +109,14 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  /// تسجيل الدخول اليدوي مع آلية حظر متدرجة
+  /// تسجيل الدخول اليدوي مع آلية حظر متدرجة:
+  /// - في أول محاولتين فاشلتين: إظهار رسالة خطأ بسيطة دون حظر.
+  /// - المحاولة الثالثة الفاشلة: حظر لمدة 30 ثانية.
+  /// - المحاولة الرابعة الفاشلة: حظر لمدة دقيقتين.
+  /// - المحاولة الخامسة الفاشلة: حظر لمدة 5 دقائق.
+  /// - لأكثر من خمس محاولات فاشلة: يزيد الحظر 5 دقائق مع كل محاولة إضافية.
   Future<void> _login() async {
-    // فحص فترة الحظر قبل محاولة تسجيل الدخول
+    // فحص فترة الحظر الحالي قبل محاولة تسجيل الدخول
     if (_lockoutEndTime != null) {
       if (DateTime.now().isBefore(_lockoutEndTime!)) {
         final remaining = _lockoutEndTime!.difference(DateTime.now());
@@ -120,6 +125,7 @@ class _LoginScreenState extends State<LoginScreen>
         );
         return;
       } else {
+        // انتهاء فترة الحظر
         _lockoutEndTime = null;
       }
     }
@@ -136,11 +142,11 @@ class _LoginScreenState extends State<LoginScreen>
         );
 
         if (user != null) {
-          // نجاح تسجيل الدخول: إعادة ضبط المحاولات وفترة الحظر
+          // نجاح تسجيل الدخول: إعادة ضبط عداد المحاولات وفترة الحظر
           _failedAttempts = 0;
           _lockoutEndTime = null;
 
-          // تخزين بيانات تسجيل الدخول باستخدام secureStorage
+          // حفظ بيانات الدخول
           await secureStorage.write(
             key: 'username',
             value: _usernameController.text.trim(),
@@ -159,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen>
             _schoolCodeController.text.trim(),
           );
 
-          // تحديث كائن المستخدم بإضافة اسم المدرسة وشعارها
+          // إضافة اسم المدرسة وشعارها إلى user
           user = user.copyWith(
             schoolName: schoolDetails['name'] ?? '',
             logoUrl: schoolDetails['logo_url'] ?? '',
@@ -197,9 +203,10 @@ class _LoginScreenState extends State<LoginScreen>
             Navigator.pushReplacementNamed(context, '/home');
           }
         } else {
-          // فشل تسجيل الدخول: زيادة عداد المحاولات وتحديد مدة الحظر
+          // فشل تسجيل الدخول: زيادة عداد المحاولات
           _failedAttempts++;
           if (_failedAttempts < 3) {
+            // في أول محاولتين فاشلتين: رسالة خطأ بسيطة دون حظر
             _showErrorSnackBar('بيانات الدخول خاطئة');
           } else {
             int blockSeconds = 0;
@@ -483,6 +490,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // حقل اسم المستخدم
                                     _buildInputLabel('اسم المستخدم'),
                                     const SizedBox(height: 8),
                                     _buildTextField(
@@ -496,6 +504,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
+                                    // حقل كلمة المرور
                                     _buildInputLabel('كلمة المرور'),
                                     const SizedBox(height: 8),
                                     _buildTextField(
@@ -524,6 +533,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                     ),
                                     const SizedBox(height: 24),
+                                    // حقل رمز المدرسة
                                     _buildInputLabel('رمز المدرسة'),
                                     const SizedBox(height: 8),
                                     _buildTextField(

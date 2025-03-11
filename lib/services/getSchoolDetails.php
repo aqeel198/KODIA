@@ -5,17 +5,22 @@
  * بناءً على رمز المدرسة المرسل عبر GET.
  *******************************************************/
 
-// تفعيل عرض الأخطاء في وضع التطوير
+// تفعيل عرض الأخطاء في وضع التطوير (يُنصح بتعطيلها في بيئة الإنتاج)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 header('Content-Type: application/json; charset=UTF-8');
 
-// بيانات الاتصال بقاعدة البيانات
-$servername = "sxb1plzcpnl508429.prod.sxb1.secureserver.net";
-$port       = 3306;
-$username   = "habboush";
-$password   = "ASDdsaWSS22";
-$dbname     = "SchoolDB";
+// استرجاع بيانات الاتصال بقاعدة البيانات من متغيرات البيئة
+$servername = getenv('DB_HOST');
+$port       = getenv('DB_PORT') ? (int)getenv('DB_PORT') : 3306;
+$username   = getenv('DB_USER');
+$password   = getenv('DB_PASSWORD');
+$dbname     = getenv('DB_NAME');
+
+// التحقق من توفر بيانات الاتصال
+if (!$servername || !$username || !$password || !$dbname) {
+    die(json_encode(["error" => "بيانات الاتصال غير متوفرة. يرجى التأكد من إعداد متغيرات البيئة."]));
+}
 
 // إنشاء الاتصال بقاعدة البيانات
 $conn = new mysqli($servername, $username, $password, $dbname, $port);
@@ -40,8 +45,8 @@ $stmt->bind_param("s", $school_code);
 $stmt->execute();
 $stmt->bind_result($name, $logo_url);
 
+// التحقق من نتيجة الاستعلام وإرجاع البيانات بصيغة JSON
 if ($stmt->fetch()) {
-    // إرجاع البيانات في صيغة JSON
     echo json_encode([
         "name"     => $name,
         "logo_url" => $logo_url
